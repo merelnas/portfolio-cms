@@ -1,0 +1,1527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nav v1 — Publish button above GitHub</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500&family=Geist+Mono:wght@400;500&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:       #f7f7f5;
+  --surface:  #ffffff;
+  --border:   #e4e4e0;
+  --border2:  #d0d0ca;
+  --text:     #1a1a18;
+  --muted:    #8a8a84;
+  --accent:   #1a1a18;
+  --blue:     #2563eb;
+  --blue-bg:  #eff6ff;
+  --red:      #dc2626;
+  --red-bg:   #fef2f2;
+  --green:    #16a34a;
+  --green-bg: #f0fdf4;
+  --amber:    #d97706;
+  --amber-bg: #fffbeb;
+  --radius:   8px;
+}
+
+body { font-family: 'Geist', sans-serif; background: var(--bg); color: var(--text); font-size: 13px; line-height: 1.5; }
+
+/* ── App shell ── */
+.app-shell { display: grid; grid-template-columns: 168px 1fr; min-height: 100vh; }
+
+/* ── Nav ── */
+.app-nav {
+  background: var(--surface); border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; padding: 8px 0 0;
+  position: sticky; top: 0; height: 100vh; overflow-y: auto;
+}
+.nav-group-label { font-size: 10px; font-weight: 500; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); padding: 10px 12px 4px; }
+.nav-btn {
+  display: block; width: 100%; text-align: left; padding: 5px 12px;
+  font-family: inherit; font-size: 12px; background: none; border: none;
+  cursor: pointer; color: var(--muted); transition: all .1s; position: relative;
+}
+.nav-btn:hover { color: var(--text); }
+.nav-btn.active { color: var(--text); font-weight: 500; background: var(--bg); }
+.nav-btn.active::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: var(--text); border-radius: 0 2px 2px 0; }
+.nav-badge { display: inline-block; background: var(--amber-bg); color: var(--amber); border: 1px solid #fed7aa; border-radius: 100px; font-size: 10px; font-weight: 500; padding: 0 5px; margin-left: 5px; vertical-align: middle; }
+.nav-btn-bottom { color: var(--muted); font-size: 11px; border-top: 1px solid var(--border); margin: 0 6px; padding: 7px 6px; width: calc(100% - 12px); border-radius: var(--radius); }
+.nav-btn-bottom:hover { background: var(--bg); color: var(--text); }
+.nav-btn-util {
+  display: block; width: 100%; text-align: left;
+  font-family: inherit; font-size: 11px; font-weight: 400;
+  color: var(--muted); background: none; border: none;
+  cursor: pointer; padding: 5px 12px;
+  transition: color .1s;
+}
+.nav-btn-util:hover { color: var(--text); }
+.nav-publish-btn { font-size: 12px; padding: 7px 12px; }
+
+/* ── Content ── */
+.app-content { overflow-y: auto; height: 100vh; }
+.section-page { padding: 24px 28px; max-width: 600px; }
+.section-page.full-width { max-width: none; padding: 0; }
+.section-title { font-size: 15px; font-weight: 500; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+
+/* ── Buttons ── */
+.btn { font-family: inherit; font-size: 12px; font-weight: 500; cursor: pointer; border-radius: var(--radius); padding: 5px 12px; display: inline-flex; align-items: center; gap: 5px; transition: all .12s; border: 1px solid transparent; white-space: nowrap; }
+.btn-default { background: var(--surface); border-color: var(--border2); color: var(--text); }
+.btn-default:hover { background: var(--bg); border-color: #b0b0aa; }
+.btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.btn-primary:hover { background: #333; }
+.btn-ghost { background: transparent; border-color: transparent; color: var(--muted); padding: 5px 8px; }
+.btn-ghost:hover { background: var(--bg); color: var(--text); }
+.btn-danger { background: var(--red-bg); border-color: #fecaca; color: var(--red); }
+.btn-danger:hover { background: #fee2e2; }
+.btn-sm { font-size: 11px; padding: 3px 9px; }
+.btn-full { width: 100%; justify-content: center; padding: 8px 12px; }
+
+/* ── Form ── */
+.field { margin-bottom: 12px; }
+.field:last-child { margin-bottom: 0; }
+label { display: block; font-size: 12px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
+input[type="text"], input[type="password"], input[type="number"], textarea, select {
+  width: 100%; font-family: inherit; font-size: 12px; color: var(--text);
+  background: var(--surface); border: 1px solid var(--border2);
+  border-radius: var(--radius); padding: 6px 10px; outline: none;
+  transition: border-color .12s, box-shadow .12s; appearance: none;
+}
+input:focus, textarea:focus, select:focus { border-color: #a0a0f0; box-shadow: 0 0 0 3px rgba(99,102,241,.1); }
+textarea { resize: vertical; min-height: 72px; line-height: 1.5; }
+select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238a8a84' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; padding-right: 28px; cursor: pointer; }
+.settings-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 560px) { .settings-row { grid-template-columns: 1fr; } }
+.settings-hint { font-size: 11px; color: var(--muted); margin-top: 3px; }
+.field-row { display: flex; gap: 8px; align-items: flex-start; }
+.field-row .field { flex: 1; margin-bottom: 0; }
+
+/* ── Toggle / checkbox ── */
+.toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); }
+.toggle-row:last-child { border-bottom: none; }
+.toggle-label { font-size: 12px; font-weight: 500; }
+.toggle-desc { font-size: 11px; color: var(--muted); margin-top: 1px; }
+.toggle { position: relative; width: 32px; height: 18px; flex-shrink: 0; }
+.toggle input { opacity: 0; width: 0; height: 0; position: absolute; }
+.toggle-slider { position: absolute; inset: 0; background: var(--border2); border-radius: 100px; cursor: pointer; transition: background .2s; }
+.toggle-slider::before { content: ''; position: absolute; width: 12px; height: 12px; left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: transform .2s; }
+.toggle input:checked + .toggle-slider { background: var(--accent); }
+.toggle input:checked + .toggle-slider::before { transform: translateX(14px); }
+
+/* ── Upload zone ── */
+.upload-zone { border: 1.5px dashed var(--border2); border-radius: var(--radius); padding: 18px 12px; text-align: center; cursor: pointer; transition: all .12s; position: relative; background: var(--bg); margin-bottom: 12px; }
+.upload-zone:hover, .upload-zone.drag { border-color: #a0a0f0; background: #f5f5ff; }
+.upload-zone input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+.upload-icon { width: 30px; height: 30px; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; display: flex; align-items: center; justify-content: center; margin: 0 auto 8px; font-size: 14px; }
+.upload-zone p { font-size: 12px; color: var(--muted); line-height: 1.5; }
+.upload-zone strong { color: var(--text); font-weight: 500; }
+#preview-thumb { width: 100%; max-height: 160px; object-fit: cover; display: none; border-radius: var(--radius); border: 1px solid var(--border); margin-bottom: 12px; }
+
+/* ── Year row ── */
+.year-row { display: flex; gap: 6px; }
+.year-row select { flex: 1; }
+
+/* ── Stat bar ── */
+.stat-bar { display: flex; gap: 16px; padding: 7px 16px; border-bottom: 1px solid var(--border); background: var(--bg); flex-wrap: wrap; align-items: center; }
+.stat { font-size: 11px; color: var(--muted); }
+.stat strong { color: var(--text); font-weight: 500; }
+
+/* ── Search bar ── */
+.search-bar { padding: 7px 12px; border-bottom: 1px solid var(--border); background: var(--surface); }
+.search-bar input { background: var(--bg); border-color: var(--border); font-size: 12px; }
+.search-bar input:focus { border-color: #a0a0f0; }
+
+/* ── Year tabs ── */
+.year-tabs { display: flex; border-bottom: 1px solid var(--border); overflow-x: auto; background: var(--surface); }
+.year-tab { font-family: inherit; font-size: 12px; font-weight: 500; padding: 7px 12px; border: none; border-bottom: 2px solid transparent; background: transparent; color: var(--muted); cursor: pointer; margin-bottom: -1px; transition: all .12s; white-space: nowrap; }
+.year-tab:hover { color: var(--text); }
+.year-tab.active { color: var(--text); border-bottom-color: var(--text); }
+
+/* ── Item rows ── */
+.item-row { display: grid; grid-template-columns: 58px 1fr auto; gap: 11px; align-items: center; padding: 8px 14px; border-bottom: 1px solid var(--border); transition: background .1s; animation: slideIn .15s ease; cursor: grab; }
+.item-row:hover { background: var(--bg); }
+.item-row.dragging { opacity: .4; cursor: grabbing; }
+.item-row.drag-over { border-top: 2px solid var(--blue); }
+@keyframes slideIn { from { opacity:0; transform:translateY(3px); } to { opacity:1; transform:none; } }
+.item-thumb { width: 58px; height: 44px; object-fit: cover; border-radius: 5px; border: 1px solid var(--border); }
+.item-thumb-placeholder { width: 58px; height: 44px; border-radius: 5px; border: 1px solid var(--border); background: var(--bg); display: flex; align-items: center; justify-content: center; font-size: 16px; }
+.item-name { font-size: 12px; font-weight: 500; margin-bottom: 1px; }
+.item-meta { font-size: 11px; color: var(--muted); }
+.item-badges { display: flex; gap: 3px; margin-top: 3px; flex-wrap: wrap; }
+.badge { display: inline-flex; align-items: center; font-size: 10px; font-weight: 500; border-radius: 100px; padding: 1px 6px; }
+.badge-draft { background: var(--amber-bg); color: var(--amber); border: 1px solid #fed7aa; }
+.badge-series { background: var(--blue-bg); color: var(--blue); border: 1px solid #bfdbfe; }
+.badge-year { background: var(--bg); color: var(--muted); border: 1px solid var(--border); }
+.item-actions { display: flex; gap: 3px; flex-shrink: 0; }
+
+/* ── Empty state ── */
+.empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 48px 20px; color: var(--muted); gap: 10px; text-align: center; }
+.empty-icon { width: 40px; height: 40px; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+.empty-state p { font-size: 12px; }
+
+/* ── Undo bar ── */
+#undo-bar { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--text); color: #fff; padding: 8px 14px; border-radius: var(--radius); font-size: 12px; display: flex; align-items: center; gap: 10px; transition: transform .25s; z-index: 500; white-space: nowrap; }
+#undo-bar.show { transform: translateX(-50%) translateY(0); }
+#undo-bar button { background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.2); color: #fff; font-family: inherit; font-size: 11px; font-weight: 500; cursor: pointer; border-radius: 5px; padding: 2px 9px; }
+#undo-bar button:hover { background: rgba(255,255,255,.25); }
+
+/* ── Toast ── */
+#toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(8px); background: var(--text); color: #fff; padding: 6px 14px; border-radius: 100px; font-size: 12px; font-weight: 500; opacity: 0; transition: all .2s; pointer-events: none; z-index: 999; white-space: nowrap; }
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ── Modals ── */
+.overlay { position: fixed; inset: 0; background: rgba(0,0,0,.35); backdrop-filter: blur(2px); display: none; align-items: center; justify-content: center; z-index: 200; padding: 16px; }
+.overlay.open { display: flex; }
+.modal { background: var(--surface); border-radius: 10px; width: 100%; max-width: 440px; box-shadow: 0 16px 48px rgba(0,0,0,.12); overflow: hidden; }
+.modal-head { padding: 13px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+.modal-head h2 { font-size: 13px; font-weight: 500; }
+.modal-body { padding: 16px; }
+.modal-hint { font-size: 11px; color: var(--muted); margin-bottom: 12px; line-height: 1.6; }
+
+/* ── Publish history ── */
+.history-row { display: flex; align-items: center; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid var(--border); font-size: 12px; }
+.history-row:last-child { border-bottom: none; }
+.history-time { color: var(--muted); font-size: 11px; }
+
+/* ── CV rows ── */
+.cv-row { display: grid; grid-template-columns: 44px 1fr auto; gap: 8px; align-items: start; padding: 7px 9px; border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 5px; background: var(--surface); font-size: 12px; }
+.cv-year { font-size: 11px; color: var(--muted); padding-top: 1px; }
+.cv-text { line-height: 1.4; }
+.cv-venue { font-size: 11px; color: var(--muted); }
+
+/* ── Settings section title ── */
+.settings-section-title { font-size: 10px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
+
+</style>
+</head>
+<body>
+
+<!-- ── Main app ── -->
+<div id="app" style="display:block">
+<div class="app-shell">
+
+  <!-- Nav -->
+<nav class="app-nav">
+
+  <button class="nav-btn active" onclick="showSection('sec-add-work',this)">Add work</button>
+  <button class="nav-btn" onclick="showSection('sec-archive',this)">Works <span class="nav-badge" id="nav-draft-badge" style="display:none">drafts</span></button>
+
+  <div style="height:1px;background:var(--border);margin:8px 0"></div>
+
+  <button class="nav-btn" onclick="showSection('sec-identity',this)">Artist info</button>
+  <button class="nav-btn" onclick="showSection('sec-exhibitions',this)">Exhibitions</button>
+  <button class="nav-btn" onclick="showSection('sec-cv-edu',this)">Education</button>
+  <button class="nav-btn" onclick="showSection('sec-writing',this)">Writing</button>
+  <button class="nav-btn" onclick="showSection('sec-contact',this)">Contact</button>
+
+  <div style="flex:1"></div>
+
+  <div style="padding:10px 10px 4px">
+    <button class="btn btn-primary btn-full nav-publish-btn" onclick="publishAll()">
+      Publish <span id="unsaved-dot" style="display:none;width:7px;height:7px;background:rgba(255,255,255,.6);border-radius:50%;margin-left:4px;vertical-align:middle;flex-shrink:0"></span>
+    </button>
+  </div>
+  <button class="nav-btn-util" onclick="showSection('sec-github',this)">GitHub</button>
+  <button class="nav-btn" id="preview-nav-btn" onclick="openPreviewWindow()" style="display:none">Live preview ↗</button>
+  <button class="nav-btn-util" onclick="openModal('backup-modal')">Backup & restore</button>
+</nav>
+  <!-- Content -->
+  <div class="app-content">
+
+    <!-- Add work -->
+    <div id="sec-add-work" class="section-page">
+      <img id="preview-thumb" alt="Preview">
+      <div class="upload-zone" id="upload-zone">
+        <input type="file" id="file-input" accept="image/*" onchange="handleFile(this)">
+        <div class="upload-icon">🖼</div>
+        <p><strong>Click to upload</strong> or drag & drop<br>JPG, PNG, WebP — auto-resized to max 1800px</p>
+      </div>
+      <div class="field">
+        <label for="title-input">Title</label>
+        <input type="text" id="title-input" placeholder="">
+      </div>
+      <div class="field">
+        <label for="desc-input">Description</label>
+        <textarea id="desc-input" placeholder=""></textarea>
+      </div>
+      <div class="settings-row">
+        <div class="field">
+          <label for="material-input">Material</label>
+          <input type="text" id="material-input" placeholder="">
+        </div>
+        <div class="field">
+          <label for="dimensions-input">Dimensions</label>
+          <input type="text" id="dimensions-input" placeholder="">
+        </div>
+      </div>
+      <div class="field">
+        <label for="series-input">Series <span style="font-weight:400;color:var(--muted)">(optional)</span></label>
+        <input type="text" id="series-input" placeholder="" list="series-datalist" autocomplete="off">
+        <datalist id="series-datalist"></datalist>
+      </div>
+      <div class="field">
+        <label>Year</label>
+        <div class="year-row">
+          <select id="year-select"></select>
+          <button class="btn btn-default" onclick="openModal('new-year-modal')">+ New year</button>
+          <button class="btn btn-default" onclick="openModal('manage-years-modal')" style="padding:6px 10px">⋯</button>
+        </div>
+      </div>
+      <div class="toggle-row" style="margin-bottom:16px">
+        <div>
+          <div class="toggle-label">Save as draft</div>
+          <div class="toggle-desc">Draft works are saved but not visible on the website</div>
+        </div>
+        <label class="toggle"><input type="checkbox" id="draft-toggle"><span class="toggle-slider"></span></label>
+      </div>
+      <button class="btn btn-primary btn-full" onclick="addItem()">Add to portfolio</button>
+    </div>
+
+    <!-- Archive -->
+    <div id="sec-archive" class="section-page full-width" style="display:none">
+      <div class="stat-bar">
+        <div class="stat">Total <strong id="total-count">0</strong></div>
+        <div class="stat" id="year-stat"></div>
+        <div class="stat" id="draft-stat"></div>
+        <div style="flex:1"></div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <select id="sort-select" style="font-size:12px;padding:4px 28px 4px 8px;margin-bottom:0;border-color:var(--border);background:var(--surface)" onchange="renderList()">
+            <option value="newest">Newest first</option>
+            <option value="oldest">Oldest first</option>
+            <option value="title">Title A–Z</option>
+          </select>
+        </div>
+      </div>
+      <div class="search-bar">
+        <input type="text" id="search-input" placeholder="Search by title, material, series…" oninput="renderList()" style="margin-bottom:0">
+      </div>
+      <div class="year-tabs" id="year-tabs"></div>
+      <div id="item-list"></div>
+    </div>
+
+    <!-- Artist info -->
+    <div id="sec-identity" class="section-page" style="display:none">
+      <div class="settings-row">
+        <div class="field">
+          <label for="s-name">Artist name</label>
+          <input type="text" id="s-name" placeholder="">
+        </div>
+        <div class="field">
+          <label for="s-instagram">Instagram handle</label>
+          <input type="text" id="s-instagram" placeholder="">
+        </div>
+      </div>
+      <div class="field">
+        <label for="s-representation">Representation</label>
+        <input type="text" id="s-representation" placeholder="">
+      </div>
+      <div class="field">
+        <label for="s-representation-url">Gallery website</label>
+        <input type="text" id="s-representation-url" placeholder="">
+      </div>
+      <div class="field">
+        <label for="s-location">Based in</label>
+        <input type="text" id="s-location" placeholder="">
+      </div>
+      <div class="field">
+        <label for="s-bio">Bio</label>
+        <textarea id="s-bio" placeholder="" style="min-height:160px"></textarea>
+      </div>
+      <button class="btn btn-primary" onclick="saveSettingsToStorage();markSaved();toast('Saved')">Save</button>
+    </div>
+
+    <!-- Contact -->
+    <div id="sec-contact" class="section-page" style="display:none">
+      <div class="settings-row">
+        <div class="field">
+          <label for="s-email">Email address</label>
+          <input type="text" id="s-email" placeholder="">
+        </div>
+        <div class="field">
+          <label for="s-phone">Phone <span style="font-weight:400;color:var(--muted)">(optional)</span></label>
+          <input type="text" id="s-phone" placeholder="">
+        </div>
+      </div>
+      <div class="field">
+        <label for="s-cv">Portfolio PDF filename</label>
+        <input type="text" id="s-cv" placeholder="">
+      </div>
+      <div class="field">
+        <label for="s-contact-text">Additional contact text</label>
+        <textarea id="s-contact-text" placeholder=""></textarea>
+      </div>
+      <button class="btn btn-primary" onclick="saveSettingsToStorage();markSaved();toast('Saved')">Save</button>
+    </div>
+
+    <!-- Writing (merged press + texts) -->
+    <div id="sec-writing" class="section-page" style="display:none">
+      <div id="s-writing-list" style="margin-bottom:20px"></div>
+      <div style="border:1px solid var(--border);border-radius:var(--radius);padding:16px;background:var(--bg)">
+        <p class="settings-section-title" style="margin-bottom:12px" id="writing-form-label">Add item</p>
+        <div class="settings-row">
+          <div class="field"><label>Title</label><input type="text" id="s-writing-title" placeholder=""></div>
+          <div class="field"><label>Date</label><input type="text" id="s-writing-date" placeholder=""></div>
+        </div>
+        <div class="settings-row">
+          <div class="field"><label>Author / publication <span style="font-weight:400;color:var(--muted)">(optional)</span></label><input type="text" id="s-writing-source" placeholder=""></div>
+          <div class="field">
+            <label>Type</label>
+            <select id="s-writing-type">
+              <option value="press">Press / review</option>
+              <option value="essay">Essay / text</option>
+              <option value="statement">Artist statement</option>
+              <option value="interview">Interview</option>
+              <option value="catalogue">Catalogue text</option>
+            </select>
+          </div>
+        </div>
+        <div class="field"><label>Link <span style="font-weight:400;color:var(--muted)">(optional)</span></label><input type="text" id="s-writing-url" placeholder=""></div>
+        <div class="field">
+          <label>Body text <span style="font-weight:400;color:var(--muted)">(optional, shown when no link)</span></label>
+          <textarea id="s-writing-body" placeholder="" style="min-height:100px"></textarea>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-default" onclick="addWriting()">+ Add</button>
+          <button class="btn btn-ghost btn-sm" id="writing-cancel-btn" style="display:none" onclick="cancelWritingEdit()">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Exhibitions -->
+    <div id="sec-exhibitions" class="section-page" style="display:none">
+      <div id="s-exh-list" style="margin-bottom:20px"></div>
+      <div style="border:1px solid var(--border);border-radius:var(--radius);padding:16px;background:var(--bg)">
+        <p class="settings-section-title" style="margin-bottom:12px">Add exhibition</p>
+        <div class="settings-row">
+          <div class="field"><label>Year</label><input type="text" id="s-exh-year" maxlength="4"></div>
+          <div class="field"><label>Title</label><input type="text" id="s-exh-title"></div>
+        </div>
+        <div class="field"><label>Venue / location</label><input type="text" id="s-exh-venue"></div>
+        <button class="btn btn-default" onclick="addExhibition()">+ Add</button>
+      </div>
+    </div>
+
+    <!-- CV & Education (combined) -->
+    <div id="sec-cv-edu" class="section-page" style="display:none">
+
+      <div style="margin-bottom:32px">
+        <h3 style="font-size:13px;font-weight:500;margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border)">CV download</h3>
+        <div id="cv-upload-zone" class="upload-zone" style="border-style:dashed">
+          <input type="file" id="cv-file-input" accept=".pdf" onchange="handleCvUpload(this)">
+          <div class="upload-icon">📄</div>
+          <p><strong>Click to upload PDF</strong> or drag & drop</p>
+        </div>
+        <div id="cv-current" style="display:none;border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;background:var(--surface);align-items:center;justify-content:space-between;margin-top:8px">
+          <div style="display:flex;align-items:center;gap:10px">
+            <span style="font-size:20px">📄</span>
+            <div>
+              <div style="font-size:13px;font-weight:500" id="cv-filename-display">No CV uploaded</div>
+              <div style="font-size:12px;color:var(--muted)" id="cv-size-display"></div>
+            </div>
+          </div>
+          <button class="btn btn-danger btn-sm" onclick="removeCvFile()">Remove</button>
+        </div>
+      </div>
+
+      <div>
+        <h3 style="font-size:13px;font-weight:500;margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border)">Education</h3>
+        <div id="s-edu-list" style="margin-bottom:16px"></div>
+        <div style="border:1px solid var(--border);border-radius:var(--radius);padding:16px;background:var(--bg)">
+          <p class="settings-section-title" style="margin-bottom:12px">Add education</p>
+          <div class="settings-row">
+            <div class="field"><label>Year</label><input type="text" id="s-edu-year" maxlength="4"></div>
+            <div class="field"><label>Degree / programme</label><input type="text" id="s-edu-title"></div>
+          </div>
+          <div class="field"><label>Institution</label><input type="text" id="s-edu-institution"></div>
+          <button class="btn btn-default" onclick="addEducation()">+ Add</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- GitHub settings -->
+    <div id="sec-github" class="section-page" style="display:none">
+      <div class="field">
+        <label for="gh-token">Personal access token</label>
+        <input type="password" id="gh-token" placeholder="ghp_...">
+      </div>
+      <div class="settings-row">
+        <div class="field"><label for="gh-owner">GitHub username</label><input type="text" id="gh-owner" placeholder=""></div>
+        <div class="field"><label for="gh-repo">Repository name</label><input type="text" id="gh-repo" placeholder=""></div>
+      </div>
+      <div class="field"><label for="gh-branch">Branch</label><input type="text" id="gh-branch" placeholder="main"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">
+        <button class="btn btn-default" onclick="testGitHubConnection()">Test connection</button>
+        <button class="btn btn-primary" onclick="saveGitHubSettings()">Save</button>
+      </div>
+      <div id="gh-status" style="font-size:13px;line-height:1.6"></div>
+    </div>
+
+  </div><!-- /.app-content -->
+</div><!-- /.app-shell -->
+</div><!-- /#app -->
+
+<!-- Edit modal -->
+<div class="overlay" id="edit-modal">
+  <div class="modal">
+    <div class="modal-head"><h2>Edit work</h2><button class="btn btn-ghost btn-sm" onclick="closeModal('edit-modal')">✕ Close</button></div>
+    <div class="modal-body">
+      <div class="field"><label>Title</label><input type="text" id="edit-title"></div>
+      <div class="field"><label>Description</label><textarea id="edit-desc"></textarea></div>
+      <div class="settings-row">
+        <div class="field"><label>Material</label><input type="text" id="edit-material"></div>
+        <div class="field"><label>Dimensions</label><input type="text" id="edit-dimensions"></div>
+      </div>
+      <div class="field"><label>Series</label><input type="text" id="edit-series" placeholder=""></div>
+      <div class="field"><label>Year</label><select id="edit-year"></select></div>
+      <div class="toggle-row" style="margin-bottom:16px">
+        <div><div class="toggle-label">Draft</div><div class="toggle-desc">Not visible on website</div></div>
+        <label class="toggle"><input type="checkbox" id="edit-draft"><span class="toggle-slider"></span></label>
+      </div>
+      <div class="field" style="border-top:1px solid var(--border);padding-top:14px;margin-top:4px">
+        <label>Replace image <span style="font-weight:400;color:var(--muted)">(optional)</span></label>
+        <img id="edit-image-preview" style="display:none;width:100%;max-height:140px;object-fit:cover;border-radius:var(--radius);border:1px solid var(--border);margin-bottom:8px" alt="New image preview">
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-default btn-full" id="edit-replace-btn" onclick="document.getElementById('edit-file-input').click()">&#8593; Choose new image</button>
+          <input type="file" id="edit-file-input" accept="image/*" style="display:none" onchange="handleEditFile(this)">
+        </div>
+        <p id="edit-image-hint" style="display:none;font-size:11px;color:var(--amber);margin-top:4px">New image staged — click Save to apply</p>
+      </div>
+      <button class="btn btn-primary btn-full" onclick="saveEdit()">Save changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- New year modal -->
+<div class="overlay" id="new-year-modal">
+  <div class="modal">
+    <div class="modal-head"><h2>Add new year</h2><button class="btn btn-ghost btn-sm" onclick="closeModal('new-year-modal')">✕ Close</button></div>
+    <div class="modal-body">
+      <div class="field"><label>Year</label><input type="text" id="new-year-input" placeholder="e.g. 2027" maxlength="4"></div>
+      <p class="modal-hint">The website handles new years automatically — no HTML file needed.</p>
+      <button class="btn btn-primary btn-full" onclick="confirmNewYear()">Add year</button>
+    </div>
+  </div>
+</div>
+
+<!-- Manage years modal -->
+<div class="overlay" id="manage-years-modal">
+  <div class="modal">
+    <div class="modal-head"><h2>Manage years</h2><button class="btn btn-ghost btn-sm" onclick="closeModal('manage-years-modal')">✕ Close</button></div>
+    <div class="modal-body">
+      <p class="modal-hint">Delete a year and all its works, or keep the works.</p>
+      <div id="manage-years-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Backup modal -->
+<div class="overlay" id="backup-modal">
+  <div class="modal">
+    <div class="modal-head"><h2>Backup & restore</h2><button class="btn btn-ghost btn-sm" onclick="closeModal('backup-modal')">✕ Close</button></div>
+    <div class="modal-body">
+      <div style="display:flex;gap:8px;flex-direction:column">
+        <button class="btn btn-primary btn-full" onclick="exportBackup()">&#8595; Download full backup</button>
+        <div style="position:relative">
+          <button class="btn btn-default btn-full" id="restore-btn" onclick="IS_ELECTRON ? restoreBackup() : document.getElementById('restore-input').click()">&#8593; Restore from backup</button>
+          <input type="file" id="restore-input" accept=".json" style="display:none" onchange="restoreBackup(this)">
+        </div>
+        <button class="btn btn-ghost btn-sm" id="show-backups-btn" onclick="window.electronAPI && window.electronAPI.showBackupDir()" style="display:none;font-size:12px">Show auto-backups folder</button>
+      </div>
+      <p style="font-size:11px;color:var(--muted);margin-top:12px;line-height:1.6">Restoring will replace all current data. This cannot be undone.</p>
+    </div>
+  </div>
+</div>
+
+<div id="undo-bar"><span id="undo-msg"></span><button onclick="undoDelete()">Undo</button></div>
+<div id="toast"></div>
+
+<script>
+// ─────────────────────────────────────────────
+// ELECTRON DETECTION + STORAGE LAYER
+// ─────────────────────────────────────────────
+const IS_ELECTRON = !!(window.electronAPI);
+
+// Unified storage: Electron uses IPC to main process; browser uses localStorage
+const Store = {
+  // Data is loaded async in initAsync(); these are the live in-memory copies
+  _data: null,
+
+  async load() {
+    if (IS_ELECTRON) {
+      this._data = await window.electronAPI.loadData();
+      return this._data;
+    }
+    return null; // browser path loads directly from localStorage below
+  },
+
+  async save(data) {
+    if (IS_ELECTRON) {
+      await window.electronAPI.saveData(data);
+    }
+    // Browser path: individual keys saved separately (existing behaviour preserved)
+  },
+
+  // Save an image; returns a key to store in item.image
+  // Electron: saves to filesystem, returns filename
+  // Browser:  returns the base64 data-URL as-is
+  async saveImage(filename, base64DataUrl) {
+    if (IS_ELECTRON) {
+      // Strip the data:image/xxx;base64, prefix
+      const b64 = base64DataUrl.split(',')[1];
+      const name = await window.electronAPI.saveImage(filename, b64);
+      return { type: 'file', name }; // { type:'file', name:'1234567890.jpg' }
+    }
+    return { type: 'base64', data: base64DataUrl };
+  },
+
+  // Resolve an item.image to a displayable src
+  async resolveImage(imageObj) {
+    if (!imageObj) return null;
+    // Legacy: plain string means base64 data-URL
+    if (typeof imageObj === 'string') return imageObj;
+    if (imageObj.type === 'base64') return imageObj.data;
+    if (imageObj.type === 'file') {
+      if (IS_ELECTRON) return await window.electronAPI.readImage(imageObj.name);
+      return null; // file refs can't be shown in plain browser
+    }
+    return null;
+  },
+
+  async deleteImage(imageObj) {
+    if (IS_ELECTRON && imageObj && imageObj.type === 'file') {
+      await window.electronAPI.deleteImage(imageObj.name);
+    }
+  }
+};
+
+// ─────────────────────────────────────────────
+// STATE
+// ─────────────────────────────────────────────
+const DEFAULT_YEARS = [2026, 2025, 2024, 2023, 2022, 2020];
+let items       = [];
+let years       = [];
+let currentImageData = null;  // base64 data-URL of pending image
+let currentImageFile = null;  // original File object
+let editingIndex     = null;
+let activeTab        = 'all';
+let deletedItem      = null;
+let undoTimer        = null;
+let autoSyncEnabled  = false; // kept for legacy data compat, not used in UI
+
+function sortedYears() { return [...years].sort((a,b) => b-a); }
+
+// ─────────────────────────────────────────────
+// NAV
+// ─────────────────────────────────────────────
+function showSection(id, btn) {
+  document.querySelectorAll('.section-page').forEach(el => el.style.display = 'none');
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  const sec = document.getElementById(id);
+  if (sec) sec.style.display = id === 'sec-archive' ? 'block' : 'block';
+  if (btn) btn.classList.add('active');
+  const settingsSections = ['sec-identity','sec-contact','sec-writing','sec-cv-edu','sec-exhibitions'];
+  if (settingsSections.includes(id)) loadSettingsForm();
+  if (id === 'sec-github') loadGitHubForm();
+  if (id === 'sec-archive') { renderTabs(); renderList(); }
+}
+
+// ─────────────────────────────────────────────
+// UPLOAD + IMAGE RESIZE
+// ─────────────────────────────────────────────
+const zone = document.getElementById('upload-zone');
+zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag'); });
+zone.addEventListener('dragleave', () => zone.classList.remove('drag'));
+zone.addEventListener('drop', e => {
+  e.preventDefault(); zone.classList.remove('drag');
+  const f = e.dataTransfer.files[0];
+  if (f && f.type.startsWith('image/')) processFile(f);
+});
+function handleFile(input) { if (input.files[0]) processFile(input.files[0]); }
+
+// In Electron: "Pick image" button triggers native file dialog
+async function pickImageElectron() {
+  const result = await window.electronAPI.pickImage();
+  if (!result) return;
+  // Convert the returned base64 to a Blob/File-like object and process
+  const mime = result.filename.match(/\.png$/i) ? 'image/png' :
+               result.filename.match(/\.webp$/i) ? 'image/webp' : 'image/jpeg';
+  const byteArr = Uint8Array.from(atob(result.base64), c => c.charCodeAt(0));
+  const blob = new Blob([byteArr], { type: mime });
+  const file = new File([blob], result.filename, { type: mime });
+  processFile(file);
+}
+
+function processFile(file) {
+  currentImageFile = file;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = new Image();
+    img.onload = () => {
+      const MAX = 1800;
+      let w = img.width, h = img.height;
+      if (w > MAX || h > MAX) {
+        const ratio = Math.min(MAX/w, MAX/h);
+        w = Math.round(w * ratio); h = Math.round(h * ratio);
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      const fname = file.name + '_' + file.size;
+      if (items.some(i => {
+        const img = i.image;
+        return (typeof img === 'string' ? img : img?._src) === fname;
+      })) {
+        toast('This image looks like a duplicate');
+      }
+      currentImageData = canvas.toDataURL('image/jpeg', 0.88);
+      const thumb = document.getElementById('preview-thumb');
+      thumb.src = currentImageData; thumb.style.display = 'block';
+      document.getElementById('upload-zone').style.display = 'none';
+      const kb = Math.round(currentImageData.length * 0.75 / 1024);
+      toast(`Image loaded (${w}×${h}px, ~${kb}KB)`);
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+// ─────────────────────────────────────────────
+// ADD / EDIT ITEMS
+// ─────────────────────────────────────────────
+async function addItem() {
+  const title      = document.getElementById('title-input').value.trim();
+  const desc       = document.getElementById('desc-input').value.trim();
+  const material   = document.getElementById('material-input').value.trim();
+  const dimensions = document.getElementById('dimensions-input').value.trim();
+  const series     = document.getElementById('series-input').value.trim();
+  const year       = parseInt(document.getElementById('year-select').value);
+  const draft      = document.getElementById('draft-toggle').checked;
+  if (!title) { toast('Please enter a title'); return; }
+  if (!currentImageData) { toast('Please upload an image'); return; }
+
+  // Save image to filesystem (Electron) or keep base64 (browser)
+  const imageObj = await Store.saveImage(
+    currentImageFile ? currentImageFile.name : 'image.jpg',
+    currentImageData
+  );
+
+  const item = { id: Date.now(), image: imageObj, title, description: desc, material, dimensions, series, year, draft };
+  items.unshift(item);
+  await persistAll();
+  renderTabs(); renderList(); resetForm();
+  updateDraftBadge();
+  toast(draft ? 'Saved as draft' : 'Work added to ' + year);
+}
+
+function resetForm() {
+  currentImageData = null;
+  currentImageFile = null;
+  ['title-input','desc-input','material-input','dimensions-input','series-input'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('draft-toggle').checked = false;
+  document.getElementById('file-input').value = '';
+  document.getElementById('preview-thumb').style.display = 'none';
+  document.getElementById('upload-zone').style.display = '';
+}
+
+function openEdit(i) {
+  editingIndex = i;
+  currentEditImageData = null;
+  currentEditImageFile = null;
+  const item = items[i];
+  document.getElementById('edit-title').value      = item.title || '';
+  document.getElementById('edit-desc').value       = item.description || '';
+  document.getElementById('edit-material').value   = item.material || '';
+  document.getElementById('edit-dimensions').value = item.dimensions || '';
+  document.getElementById('edit-series').value     = item.series || '';
+  document.getElementById('edit-draft').checked    = item.draft || false;
+  // Reset staged image UI
+  const prev = document.getElementById('edit-image-preview');
+  const hint = document.getElementById('edit-image-hint');
+  if (prev) { prev.src = ''; prev.style.display = 'none'; }
+  if (hint) hint.style.display = 'none';
+  // In Electron: wire replace button to native picker
+  const replaceBtn = document.getElementById('edit-replace-btn');
+  if (replaceBtn && IS_ELECTRON) {
+    replaceBtn.onclick = () => pickEditImageElectron();
+  }
+  renderTabs();
+  document.getElementById('edit-year').value = item.year;
+  openModal('edit-modal');
+}
+
+async function saveEdit() {
+  const t = document.getElementById('edit-title').value.trim();
+  if (!t) { toast('Title cannot be empty'); return; }
+  items[editingIndex].title       = t;
+  items[editingIndex].description = document.getElementById('edit-desc').value.trim();
+  items[editingIndex].material    = document.getElementById('edit-material').value.trim();
+  items[editingIndex].dimensions  = document.getElementById('edit-dimensions').value.trim();
+  items[editingIndex].series      = document.getElementById('edit-series').value.trim();
+  items[editingIndex].year        = parseInt(document.getElementById('edit-year').value);
+  items[editingIndex].draft       = document.getElementById('edit-draft').checked;
+  // If a new image was staged in the edit modal, save it and replace
+  if (currentEditImageData) {
+    const oldImage = items[editingIndex].image;
+    await Store.deleteImage(oldImage);
+    items[editingIndex].image = await Store.saveImage(
+      currentEditImageFile ? currentEditImageFile.name : 'image.jpg',
+      currentEditImageData
+    );
+    currentEditImageData = null;
+    currentEditImageFile = null;
+  }
+  await persistAll();
+  renderTabs(); renderList(); closeModal('edit-modal');
+  updateDraftBadge();
+  toast('Saved');
+}
+
+// ─────────────────────────────────────────────
+// DELETE + UNDO
+// ─────────────────────────────────────────────
+async function removeItem(i) {
+  deletedItem = { item: items[i], index: i };
+  items.splice(i, 1);
+  await persistAll();
+  renderTabs(); renderList(); updateDraftBadge();
+  showUndoBar(`"${deletedItem.item.title}" removed`);
+}
+
+function showUndoBar(msg) {
+  document.getElementById('undo-msg').textContent = msg;
+  document.getElementById('undo-bar').classList.add('show');
+  clearTimeout(undoTimer);
+  undoTimer = setTimeout(() => {
+    document.getElementById('undo-bar').classList.remove('show');
+    deletedItem = null;
+  }, 6000);
+}
+
+async function undoDelete() {
+  if (!deletedItem) return;
+  items.splice(deletedItem.index, 0, deletedItem.item);
+  deletedItem = null;
+  clearTimeout(undoTimer);
+  document.getElementById('undo-bar').classList.remove('show');
+  await persistAll();
+  renderTabs(); renderList(); updateDraftBadge();
+  toast('Restored');
+}
+
+// ─────────────────────────────────────────────
+// RENDER LIST
+// ─────────────────────────────────────────────
+function renderTabs() {
+  const sy = sortedYears();
+  document.getElementById('year-tabs').innerHTML =
+    `<button class="year-tab ${activeTab==='all'?'active':''}" onclick="setTab('all')">All</button>` +
+    sy.map(y => `<button class="year-tab ${activeTab==y?'active':''}" onclick="setTab(${y})">${y}</button>`).join('');
+  const opts = sy.map(y => `<option value="${y}">${y}</option>`).join('');
+  document.getElementById('year-select').innerHTML = opts;
+  const editYear = document.getElementById('edit-year');
+  if (editYear) editYear.innerHTML = opts;
+}
+
+function setTab(tab) { activeTab = tab; renderTabs(); renderList(); }
+
+function renderList() {
+  const list     = document.getElementById('item-list');
+  const search   = (document.getElementById('search-input')?.value || '').toLowerCase();
+  const sortBy   = document.getElementById('sort-select')?.value || 'newest';
+  const total    = items.length;
+  const drafts   = items.filter(i => i.draft).length;
+
+  document.getElementById('total-count').textContent = total;
+  document.getElementById('year-stat').innerHTML     = activeTab !== 'all' ? `In ${activeTab} <strong>${items.filter(i=>i.year==activeTab).length}</strong>` : '';
+  document.getElementById('draft-stat').innerHTML    = drafts ? `Drafts <strong>${drafts}</strong>` : '';
+
+  let filtered = activeTab === 'all' ? [...items] : items.filter(i => i.year == activeTab);
+  if (search) filtered = filtered.filter(i =>
+    (i.title||'').toLowerCase().includes(search) ||
+    (i.material||'').toLowerCase().includes(search) ||
+    (i.series||'').toLowerCase().includes(search) ||
+    (i.description||'').toLowerCase().includes(search)
+  );
+
+  if (sortBy === 'oldest') filtered.sort((a,b) => a.year - b.year || a.id - b.id);
+  else if (sortBy === 'title') filtered.sort((a,b) => (a.title||'').localeCompare(b.title||''));
+
+  if (!filtered.length) {
+    list.innerHTML = `<div class="empty-state"><div class="empty-icon">${search?'🔍':'📂'}</div><p>${search?'No works match your search.':activeTab==='all'?'No works added yet.':'No works in '+activeTab+' yet.'}</p></div>`;
+    return;
+  }
+
+  // Render with placeholder thumbs first, then fill in images async
+  list.innerHTML = filtered.map(item => {
+    const ri = items.indexOf(item);
+    return `<div class="item-row" draggable="true" data-index="${ri}" ondragstart="dragStart(event,${ri})" ondragover="dragOver(event)" ondrop="dragDrop(event,${ri})" ondragleave="dragLeave(event)">
+      <div class="item-thumb-placeholder" id="thumb-${ri}">⏳</div>
+      <div style="min-width:0">
+        <div class="item-name">${esc(item.title)}</div>
+        <div class="item-meta">${[item.material, item.dimensions].filter(Boolean).join(' · ') || '—'}</div>
+        <div class="item-badges">
+          ${activeTab==='all'?`<span class="badge badge-year">${item.year}</span>`:''}
+          ${item.draft?`<span class="badge badge-draft">Draft</span>`:''}
+          ${item.series?`<span class="badge badge-series">${esc(item.series)}</span>`:''}
+        </div>
+      </div>
+      <div class="item-actions">
+        <button class="btn btn-default btn-sm" onclick="openEdit(${ri})">Edit</button>
+        <button class="btn btn-danger btn-sm" onclick="removeItem(${ri})">Remove</button>
+      </div>
+    </div>`;
+  }).join('');
+
+  // Fill in thumbs asynchronously
+  filtered.forEach(async item => {
+    const ri = items.indexOf(item);
+    const el = document.getElementById(`thumb-${ri}`);
+    if (!el) return;
+    const src = await Store.resolveImage(item.image);
+    if (src) {
+      el.outerHTML = `<img class="item-thumb" src="${src}" alt="${esc(item.title)}" style="width:72px;height:54px;object-fit:cover;border-radius:6px;border:1px solid var(--border)">`;
+    } else {
+      el.textContent = '🖼';
+    }
+  });
+}
+
+// ─────────────────────────────────────────────
+// DRAG TO REORDER
+// ─────────────────────────────────────────────
+let dragSrcIndex = null;
+function dragStart(e, i) { dragSrcIndex = i; e.currentTarget.classList.add('dragging'); }
+function dragOver(e) { e.preventDefault(); e.currentTarget.classList.add('drag-over'); }
+function dragLeave(e) { e.currentTarget.classList.remove('drag-over'); }
+async function dragDrop(e, targetIndex) {
+  e.currentTarget.classList.remove('drag-over');
+  if (dragSrcIndex === null || dragSrcIndex === targetIndex) return;
+  const moved = items.splice(dragSrcIndex, 1)[0];
+  items.splice(targetIndex, 0, moved);
+  dragSrcIndex = null;
+  await persistAll(); renderList();
+}
+
+// ─────────────────────────────────────────────
+// YEARS
+// ─────────────────────────────────────────────
+function confirmNewYear() {
+  const val = parseInt(document.getElementById('new-year-input').value);
+  if (!val || val < 1900 || val > 2100) { toast('Enter a valid year'); return; }
+  if (years.includes(val)) { toast(val + ' already exists'); return; }
+  years.push(val);
+  if (!IS_ELECTRON) localStorage.setItem('pf_years', JSON.stringify(years));
+  else persistAll();
+  closeModal('new-year-modal');
+  renderTabs();
+  document.getElementById('year-select').value = val;
+  toast('Year ' + val + ' added');
+}
+
+function openManageYearsModal() { renderManageYears(); openModal('manage-years-modal'); }
+function renderManageYears() {
+  const sy = sortedYears();
+  const list = document.getElementById('manage-years-list');
+  list.innerHTML = !sy.length ? '<p style="font-size:12px;color:var(--muted)">No years added yet.</p>' :
+    sy.map(y => {
+      const count = items.filter(i => i.year == y).length;
+      return `<div class="manage-year-row">
+        <div><div class="manage-year-label">${y}</div><div class="manage-year-count">${count} work${count!==1?'s':''}</div></div>
+        <button class="btn btn-danger btn-sm" onclick="deleteYear(${y})">Delete</button>
+      </div>`;
+    }).join('');
+}
+function deleteYear(y) {
+  const count = items.filter(i => i.year == y).length;
+  if (count > 0) {
+    if (!confirm(`"${y}" has ${count} work${count!==1?'s':''}.\n\nOK = delete year AND all its works\nCancel = keep works`)) return;
+    items = items.filter(i => i.year != y);
+  }
+  years = years.filter(yr => yr !== y);
+  if (!IS_ELECTRON) localStorage.setItem('pf_years', JSON.stringify(years));
+  if (activeTab == y) activeTab = 'all';
+  persistAll(); renderTabs(); renderList(); renderManageYears();
+  updateDraftBadge();
+  toast('Year ' + y + ' deleted');
+}
+
+function updateDraftBadge() {
+  const drafts = items.filter(i => i.draft).length;
+  const badge = document.getElementById('nav-draft-badge');
+  badge.style.display = drafts ? '' : 'none';
+  badge.textContent = drafts + ' draft' + (drafts!==1?'s':'');
+}
+
+// ─────────────────────────────────────────────
+// SETTINGS
+// ─────────────────────────────────────────────
+function getSettings() {
+  return Object.assign({
+    name:'', instagram:'', email:'', phone:'', cvFile:'', cvData:null, bio:'', contactText:'',
+    exhibitions:[], education:[], press:[], texts:[], writing:[],
+    representation:'', representationUrl:'', location:''
+  }, JSON.parse(localStorage.getItem('pf_settings') || '{}'));
+}
+
+function loadSettingsForm() {
+  const s = getSettings();
+  const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ''; };
+  set('s-name', s.name); set('s-instagram', s.instagram); set('s-email', s.email);
+  set('s-phone', s.phone); set('s-cv', s.cvFile); set('s-bio', s.bio);
+  set('s-contact-text', s.contactText); set('s-representation', s.representation);
+  set('s-representation-url', s.representationUrl); set('s-location', s.location);
+  renderCvList('s-exh-list', s.exhibitions || [], 'exhibition');
+  renderCvList('s-edu-list', s.education   || [], 'education');
+  renderPressList(s.press || []);
+  renderTextsList(s.texts || []);
+  renderWritingList(s.writing || []);
+  renderCvUploadStatus(s);
+}
+
+function renderCvList(containerId, items, type) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  if (!items.length) { el.innerHTML = '<p style="font-size:12px;color:var(--muted)">None added yet.</p>'; return; }
+  el.innerHTML = [...items].sort((a,b) => (b.year||0)-(a.year||0)).map((item, i) => `
+    <div class="cv-row">
+      <span class="cv-year">${esc(String(item.year||''))}</span>
+      <span class="cv-text">${esc(item.title)}${(item.venue||item.institution)?`<br><span class="cv-venue">${esc(item.venue||item.institution)}</span>`:''}</span>
+      <button class="btn btn-danger btn-sm" onclick="removeCvItem('${type}',${items.indexOf(item)})">✕</button>
+    </div>`).join('');
+}
+
+function renderPressList(press) { /* legacy — kept for backup restore compat */ }
+function addPress() {}
+function removePressItem(i) {}
+function renderTextsList(texts) { /* legacy — kept for backup restore compat */ }
+function addText() {}
+function removeText(i) {}
+
+// ── Writing (unified press + texts) ──
+const TYPE_LABELS = {
+  press:'Press', essay:'Essay', statement:'Artist statement',
+  interview:'Interview', catalogue:'Catalogue text'
+};
+
+function renderWritingList(writing) {
+  const el = document.getElementById('s-writing-list');
+  if (!el) return;
+  if (!writing.length) {
+    el.innerHTML = '<p style="font-size:12px;color:var(--muted)">No items added yet.</p>';
+    return;
+  }
+  el.innerHTML = writing.map((w, i) => `
+    <div class="cv-row" style="grid-template-columns:80px 1fr auto;cursor:grab"
+         draggable="true"
+         ondragstart="writingDragStart(event,${i})"
+         ondragover="writingDragOver(event)"
+         ondrop="writingDrop(event,${i})"
+         ondragleave="writingDragLeave(event)">
+      <span class="cv-year">${esc(w.date||'')}</span>
+      <span class="cv-text">
+        ${w.url ? `<a href="${esc(w.url)}" target="_blank" style="color:var(--blue)">${esc(w.title)}</a>` : `<strong>${esc(w.title)}</strong>`}
+        ${w.source ? `<br><span class="cv-venue">${esc(w.source)}</span>` : ''}
+        <span class="badge" style="background:var(--bg);border:1px solid var(--border);color:var(--muted);font-size:10px;margin-left:4px;padding:1px 6px;border-radius:100px;vertical-align:middle">${TYPE_LABELS[w.type]||w.type||'Press'}</span>
+        ${w.body && !w.url ? `<br><span class="cv-venue" style="font-style:italic">${esc(w.body.slice(0,80))}${w.body.length>80?'…':''}</span>` : ''}
+      </span>
+      <div style="display:flex;gap:4px;flex-shrink:0">
+        <button class="btn btn-default btn-sm" onclick="editWriting(${i})">Edit</button>
+        <button class="btn btn-danger btn-sm" onclick="removeWriting(${i})">✕</button>
+      </div>
+    </div>`).join('');
+}
+
+let writingDragSrc = null;
+function writingDragStart(e,i) { writingDragSrc=i; e.currentTarget.style.opacity='.4'; }
+function writingDragOver(e) { e.preventDefault(); e.currentTarget.style.borderTop='2px solid var(--blue)'; }
+function writingDragLeave(e) { e.currentTarget.style.borderTop=''; }
+function writingDrop(e,targetI) {
+  e.currentTarget.style.borderTop='';
+  if (writingDragSrc===null||writingDragSrc===targetI) return;
+  const s=getSettings(); const moved=s.writing.splice(writingDragSrc,1)[0];
+  s.writing.splice(targetI,0,moved); writingDragSrc=null;
+  localStorage.setItem('pf_settings',JSON.stringify(s));
+  renderWritingList(s.writing);
+}
+
+let editingWritingIndex = null;
+function editWriting(i) {
+  editingWritingIndex = i;
+  const s = getSettings(); const w = s.writing[i];
+  document.getElementById('s-writing-title').value  = w.title  || '';
+  document.getElementById('s-writing-date').value   = w.date   || '';
+  document.getElementById('s-writing-source').value = w.source || '';
+  document.getElementById('s-writing-type').value   = w.type   || 'press';
+  document.getElementById('s-writing-url').value    = w.url    || '';
+  document.getElementById('s-writing-body').value   = w.body   || '';
+  document.getElementById('writing-form-label').textContent = 'Edit item';
+  document.getElementById('writing-cancel-btn').style.display = '';
+  document.getElementById('s-writing-title').scrollIntoView({behavior:'smooth',block:'center'});
+  document.getElementById('s-writing-title').focus();
+}
+
+function cancelWritingEdit() {
+  editingWritingIndex = null;
+  ['s-writing-title','s-writing-date','s-writing-source','s-writing-url','s-writing-body'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('s-writing-type').value = 'press';
+  document.getElementById('writing-form-label').textContent = 'Add item';
+  document.getElementById('writing-cancel-btn').style.display = 'none';
+}
+
+function addWriting() {
+  const title  = document.getElementById('s-writing-title').value.trim();
+  const date   = document.getElementById('s-writing-date').value.trim();
+  const source = document.getElementById('s-writing-source').value.trim();
+  const type   = document.getElementById('s-writing-type').value;
+  const url    = document.getElementById('s-writing-url').value.trim();
+  const body   = document.getElementById('s-writing-body').value.trim();
+  if (!title) { toast('Please enter a title'); return; }
+  const s = getSettings(); s.writing = s.writing || [];
+  const entry = { title, date, source, type, url, body };
+  if (editingWritingIndex !== null) {
+    s.writing[editingWritingIndex] = entry;
+    editingWritingIndex = null;
+    toast('Item updated');
+  } else {
+    s.writing.unshift(entry);
+    toast('Item added');
+  }
+  localStorage.setItem('pf_settings', JSON.stringify(s));
+  cancelWritingEdit();
+  renderWritingList(s.writing);
+  markUnsaved();
+}
+
+function removeWriting(i) {
+  const s = getSettings(); s.writing.splice(i, 1);
+  localStorage.setItem('pf_settings', JSON.stringify(s));
+  renderWritingList(s.writing); toast('Removed');
+}
+
+function addExhibition() {
+  const year=document.getElementById('s-exh-year').value.trim(), title=document.getElementById('s-exh-title').value.trim(), venue=document.getElementById('s-exh-venue').value.trim();
+  if (!title) { toast('Please enter a title'); return; }
+  const s=getSettings(); s.exhibitions=s.exhibitions||[]; s.exhibitions.push({year:year?parseInt(year):'',title,venue});
+  localStorage.setItem('pf_settings',JSON.stringify(s));
+  ['s-exh-year','s-exh-title','s-exh-venue'].forEach(id=>document.getElementById(id).value='');
+  renderCvList('s-exh-list',s.exhibitions,'exhibition'); toast('Exhibition added');
+}
+function addEducation() {
+  const year=document.getElementById('s-edu-year').value.trim(), title=document.getElementById('s-edu-title').value.trim(), institution=document.getElementById('s-edu-institution').value.trim();
+  if (!title) { toast('Please enter a title'); return; }
+  const s=getSettings(); s.education=s.education||[]; s.education.push({year:year?parseInt(year):'',title,institution});
+  localStorage.setItem('pf_settings',JSON.stringify(s));
+  ['s-edu-year','s-edu-title','s-edu-institution'].forEach(id=>document.getElementById(id).value='');
+  renderCvList('s-edu-list',s.education,'education'); toast('Education added');
+}
+function removeCvItem(type,index) {
+  const s=getSettings(); const key=type==='exhibition'?'exhibitions':'education'; s[key].splice(index,1);
+  localStorage.setItem('pf_settings',JSON.stringify(s));
+  renderCvList(type==='exhibition'?'s-exh-list':'s-edu-list',s[key],type); toast('Removed');
+}
+
+// ── Texts ──
+// Legacy text functions — section removed, kept for backup/restore compatibility
+function renderTextsList(texts) { /* merged into Writing section */ }
+let textDragSrc = null;
+function textDragStart(e,i) {}
+function textDragOver(e) { e.preventDefault(); }
+function textDragLeave(e) {}
+function textDrop(e,targetI) {}
+let editingTextIndex = null;
+function editText(i) { toast('Use the Writing section to edit texts'); }
+function addText() { toast('Use the Writing section to add texts'); }
+function removeText(i) { /* no-op */ }
+
+// ── CV PDF upload ──
+function handleCvUpload(input) {
+  const file = input.files[0]; if (!file) return;
+  if (file.size > 20 * 1024 * 1024) { toast('PDF too large (max 20 MB)'); return; }
+  const reader = new FileReader();
+  reader.onload = e => {
+    const s = getSettings();
+    s.cvData     = e.target.result;   // base64 data URL
+    s.cvFile     = file.name;
+    s.cvFileSize = Math.round(file.size / 1024);
+    localStorage.setItem('pf_settings', JSON.stringify(s));
+    renderCvUploadStatus(s);
+    toast('CV uploaded — ' + s.cvFileSize + ' KB');
+  };
+  reader.readAsDataURL(file);
+}
+
+function removeCvFile() {
+  const s = getSettings(); s.cvData = null; s.cvFile = ''; s.cvFileSize = 0;
+  localStorage.setItem('pf_settings', JSON.stringify(s));
+  renderCvUploadStatus(s); toast('CV removed');
+}
+
+function renderCvUploadStatus(s) {
+  const zone    = document.getElementById('cv-upload-zone');
+  const current = document.getElementById('cv-current');
+  if (!zone || !current) return;
+  if (s.cvData) {
+    zone.style.display = 'none';
+    current.style.display = 'flex'; // restore flex layout when visible
+    document.getElementById('cv-filename-display').textContent = s.cvFile || 'CV.pdf';
+    document.getElementById('cv-size-display').textContent = s.cvFileSize ? s.cvFileSize + ' KB' : '';
+  } else {
+    zone.style.display = '';
+    current.style.display = 'none';
+  }
+}
+
+// ── Series ── (series name lives on each artwork; no separate management UI)
+function getSeriesFromItems() {
+  const map = {};
+  items.filter(i => i.series && !i.draft).forEach(item => {
+    if (!map[item.series]) map[item.series] = [];
+    map[item.series].push(item);
+  });
+  return map;
+}
+
+function saveSettingsToStorage() {
+  const s=getSettings();
+  const get=id=>{ const el=document.getElementById(id); return el?el.value.trim():''; };
+  s.name=get('s-name'); s.instagram=get('s-instagram').replace('@','');
+  s.email=get('s-email'); s.phone=get('s-phone'); s.cvFile=get('s-cv');
+  s.bio=get('s-bio'); s.contactText=get('s-contact-text');
+  s.representation=get('s-representation'); s.representationUrl=get('s-representation-url');
+  s.location=get('s-location');
+  localStorage.setItem('pf_settings',JSON.stringify(s));
+  if (IS_ELECTRON) persistAll().catch(()=>{});
+  return s;
+}
+// ─────────────────────────────────────────────
+// BACKUP / RESTORE
+// ─────────────────────────────────────────────
+async function exportBackup() {
+  const backup = {
+    version: 1,
+    date: new Date().toISOString(),
+    items,
+    years,
+    settings: getSettings()
+  };
+  const json = JSON.stringify(backup, null, 2);
+  if (IS_ELECTRON) {
+    const ok = await window.electronAPI.exportBackup(json);
+    if (ok) toast('Backup saved');
+  } else {
+    const blob=new Blob([json],{type:'application/json'});
+    const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+    a.download=`portfolio-backup-${new Date().toISOString().slice(0,10)}.json`; a.click();
+    toast('Backup downloaded');
+  }
+}
+
+async function restoreBackup(input) {
+  let jsonText = null;
+  if (IS_ELECTRON) {
+    jsonText = await window.electronAPI.importBackup();
+    if (!jsonText) return;
+  } else {
+    const file = input?.files[0]; if (!file) return;
+    jsonText = await file.text();
+  }
+  try {
+    const backup = JSON.parse(jsonText);
+    if (!backup.items || !backup.settings) throw new Error('Invalid backup file');
+    if (!confirm('This will replace ALL current data with the backup. Continue?')) return;
+    // Restore all state
+    items = backup.items || [];
+    years = backup.years || DEFAULT_YEARS;
+    // Write to localStorage so getSettings() picks it up immediately
+    localStorage.setItem('pf_items',    JSON.stringify(items));
+    localStorage.setItem('pf_years',    JSON.stringify(years));
+    localStorage.setItem('pf_settings', JSON.stringify(backup.settings));
+    // In Electron, also persist to disk
+    if (IS_ELECTRON) await persistAll();
+    closeModal('backup-modal');
+    // Fully re-render everything
+    renderTabs();
+    renderList();
+    updateDraftBadge();
+    updateSeriesDatalist();
+    loadSettingsForm();   // reload all info fields
+    loadGitHubForm();     // reload GitHub fields
+    toast('Backup restored');
+  } catch(err) { toast('Invalid backup file'); }
+}
+
+// ─────────────────────────────────────────────
+// PUBLISH HISTORY
+// ─────────────────────────────────────────────
+// ─────────────────────────────────────────────
+// GITHUB
+// ─────────────────────────────────────────────
+function getGitHubSettings() { return JSON.parse(localStorage.getItem('gh_settings')||'{}'); }
+function saveGitHubSettings() {
+  const s={ token:document.getElementById('gh-token').value.trim(), owner:document.getElementById('gh-owner').value.trim(), repo:document.getElementById('gh-repo').value.trim(), branch:document.getElementById('gh-branch').value.trim()||'main' };
+  if (!s.token||!s.owner||!s.repo) { toast('Fill in all fields'); return; }
+  localStorage.setItem('gh_settings',JSON.stringify(s)); toast('GitHub settings saved');
+}
+function loadGitHubForm() {
+  const s=getGitHubSettings();
+  const set=(id,val)=>{ const el=document.getElementById(id); if(el) el.value=val||''; };
+  set('gh-token',s.token); set('gh-owner',s.owner); set('gh-repo',s.repo); set('gh-branch',s.branch||'main');
+}
+async function ghGet(path) {
+  const s=getGitHubSettings();
+  const res=await fetch(`https://api.github.com/repos/${s.owner}/${s.repo}/contents/${path}`,{headers:{'Authorization':'token '+s.token,'Accept':'application/vnd.github.v3+json'}});
+  if (!res.ok) return null;
+  return res.json();
+}
+async function pushFile(path,content,msg) {
+  const s=getGitHubSettings();
+  const existing=await ghGet(path);
+  const body={message:msg,content:btoa(unescape(encodeURIComponent(content))),branch:s.branch};
+  if (existing?.sha) body.sha=existing.sha;
+  const res=await fetch(`https://api.github.com/repos/${s.owner}/${s.repo}/contents/${path}`,{method:'PUT',headers:{'Authorization':'token '+s.token,'Content-Type':'application/json','Accept':'application/vnd.github.v3+json'},body:JSON.stringify(body)});
+  return {ok:res.ok,status:res.status,data:await res.json()};
+}
+async function testGitHubConnection() {
+  const s=getGitHubSettings();
+  if (!s.token||!s.owner||!s.repo) { toast('Save your GitHub settings first'); return; }
+  setGhStatus('Testing…','info');
+  try {
+    const res=await fetch(`https://api.github.com/repos/${s.owner}/${s.repo}`,{headers:{'Authorization':'token '+s.token,'Accept':'application/vnd.github.v3+json'}});
+    if (res.ok) { const d=await res.json(); setGhStatus(`✓ Connected to <strong>${d.full_name}</strong>`,'success'); }
+    else if (res.status===401) setGhStatus('✕ Invalid token.','error');
+    else if (res.status===404) setGhStatus('✕ Repo not found. Check username and repo name.','error');
+    else setGhStatus('✕ Error '+res.status,'error');
+  } catch(e) { setGhStatus('✕ Network error: '+e.message,'error'); }
+}
+function setGhStatus(html,type) {
+  ['gh-status','gh-status-publish'].forEach(id=>{ const el=document.getElementById(id); if(!el)return; el.style.color={info:'var(--muted)',success:'var(--green)',error:'var(--red)'}[type]||'var(--muted)'; el.innerHTML=html; });
+}
+async function _publishAll(silent=false) {
+  const s=getGitHubSettings();
+  if (!s.token||!s.owner||!s.repo) { if(!silent) { toast('Set up GitHub first — go to GitHub in the menu'); } return; }
+  if (!silent) { setGhStatus('Publishing…','info'); toast('Publishing to GitHub…'); }
+  for (const year of sortedYears()) {
+    const yi=items.filter(i=>i.year==year&&!i.draft);
+    if (!yi.length) continue;
+    const res=await pushFile(`data/portfolio-${year}.json`,JSON.stringify(yi,null,2),`Update portfolio ${year}`);
+    if (!res.ok) throw new Error(`Failed: data/portfolio-${year}.json — ${res.data.message}`);
+  }
+  saveSettingsToStorage();
+  // Push site.json (without the raw cvData blob — too large, stored separately)
+  const siteData = { ...getSettings() };
+  delete siteData.cvData; // don't put the PDF in site.json
+  const siteRes = await pushFile('site.json', JSON.stringify(siteData, null, 2), 'Update site settings');
+  if (!siteRes.ok) throw new Error('Failed: site.json — ' + siteRes.data.message);
+
+  // Push CV PDF if present
+  const cvSettings = getSettings();
+  if (cvSettings.cvData && cvSettings.cvFile) {
+    const pdfBase64 = cvSettings.cvData.split(',')[1]; // strip data:application/pdf;base64,
+    const pdfRes = await fetch(`https://api.github.com/repos/${s.owner}/${s.repo}/contents/${cvSettings.cvFile}`, {
+      method: 'PUT',
+      headers: { 'Authorization': 'token ' + s.token, 'Content-Type': 'application/json', 'Accept': 'application/vnd.github.v3+json' },
+      body: JSON.stringify({
+        message: 'Update CV',
+        content: pdfBase64,
+        branch: s.branch,
+        ...(await ghGet(cvSettings.cvFile) ? { sha: (await ghGet(cvSettings.cvFile)).sha } : {})
+      })
+    });
+    if (!pdfRes.ok) console.warn('CV push failed — non-critical');
+  }
+
+  markSaved();
+  if (!silent) {
+    toast('✓ Published to GitHub');
+    reloadPreview();
+  }
+}
+async function publishAll() {
+  try { await _publishAll(); } catch(e) { setGhStatus('✕ '+e.message,'error'); toast('Publish failed'); }
+}
+// ─────────────────────────────────────────────
+// MODALS
+// ─────────────────────────────────────────────
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); editingIndex=null; }
+
+// ─────────────────────────────────────────────
+// UTILS
+// ─────────────────────────────────────────────
+function updateSeriesDatalist() {
+  const dl = document.getElementById('series-datalist');
+  if (!dl) return;
+  const names = [...new Set(items.filter(i=>i.series).map(i=>i.series))].sort();
+  dl.innerHTML = names.map(n=>`<option value="${esc(n)}">`).join('');
+}
+
+// persistAll: single source of truth for saving state
+// Electron → writes one JSON file; Browser → localStorage (existing keys)
+async function persistAll() {
+  markUnsaved();
+  updateSeriesDatalist();
+  if (IS_ELECTRON) {
+    const s = getSettings();
+    await Store.save({ items, years, settings: s, autoSync: autoSyncEnabled });
+  } else {
+    localStorage.setItem('pf_items', JSON.stringify(items));
+    // years and settings are saved individually elsewhere in browser mode
+  }
+}
+
+// Keep legacy save() as a sync wrapper for places that can't easily be async
+function save() {
+  markUnsaved();
+  updateSeriesDatalist();
+  if (!IS_ELECTRON) {
+    localStorage.setItem('pf_items', JSON.stringify(items));
+  } else {
+    // fire-and-forget in Electron
+    persistAll().catch(e => console.warn('save error', e));
+  }
+}
+function markUnsaved() {
+  const dot = document.getElementById('unsaved-dot');
+  if (dot) dot.style.display = 'inline-block';
+}
+function markSaved() {
+  const dot = document.getElementById('unsaved-dot');
+  if (dot) dot.style.display = 'none';
+  localStorage.setItem('last_published_hash', dataHash());
+}
+function dataHash() {
+  return items.length + '_' + JSON.stringify(getSettings()).length;
+}
+function checkUnsaved() {
+  const last = localStorage.getItem('last_published_hash');
+  if (last && last !== dataHash()) markUnsaved();
+}
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function toast(msg) {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+// Enter key support
+document.getElementById('new-year-input').addEventListener('keydown',e=>{if(e.key==='Enter')confirmNewYear();});
+
+// ─────────────────────────────────────────────
+// LIVE PREVIEW
+// ─────────────────────────────────────────────
+async function openPreviewWindow() {
+  if (!IS_ELECTRON) return;
+  const ok = await window.electronAPI.openPreview();
+  if (!ok) toast('No folder selected');
+}
+
+// Called after publish to refresh the preview window if it's open
+async function reloadPreview() {
+  if (IS_ELECTRON) await window.electronAPI.reloadPreview();
+}
+
+// ─────────────────────────────────────────────
+// EDIT MODAL — image replacement support
+// ─────────────────────────────────────────────
+let currentEditImageData = null;
+let currentEditImageFile = null;
+
+function handleEditFile(input) {
+  if (input.files[0]) processEditFile(input.files[0]);
+}
+
+async function pickEditImageElectron() {
+  const result = await window.electronAPI.pickImage();
+  if (!result) return;
+  const mime = result.filename.match(/\.png$/i) ? 'image/png' :
+               result.filename.match(/\.webp$/i) ? 'image/webp' : 'image/jpeg';
+  const byteArr = Uint8Array.from(atob(result.base64), c => c.charCodeAt(0));
+  const blob = new Blob([byteArr], { type: mime });
+  const file = new File([blob], result.filename, { type: mime });
+  processEditFile(file);
+}
+
+function processEditFile(file) {
+  currentEditImageFile = file;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = new Image();
+    img.onload = () => {
+      const MAX = 1800;
+      let w = img.width, h = img.height;
+      if (w > MAX || h > MAX) { const r = Math.min(MAX/w, MAX/h); w = Math.round(w*r); h = Math.round(h*r); }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      currentEditImageData = canvas.toDataURL('image/jpeg', 0.88);
+      const prev = document.getElementById('edit-image-preview');
+      if (prev) { prev.src = currentEditImageData; prev.style.display = 'block'; }
+      const hint = document.getElementById('edit-image-hint');
+      if (hint) hint.style.display = 'block';
+      toast(`New image staged (${w}×${h}px) — save to apply`);
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+// ─────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────
+async function initAsync() {
+  if (IS_ELECTRON) {
+    // Show preview button
+    const previewBtn = document.getElementById('preview-nav-btn');
+    if (previewBtn) previewBtn.style.display = 'block';
+
+    // Show auto-backups folder button in backup modal
+    const backupsDirBtn = document.getElementById('show-backups-btn');
+    if (backupsDirBtn) backupsDirBtn.style.display = 'block';
+
+    // Swap upload zone button label to "Pick image" in Electron
+    const uploadZone = document.getElementById('upload-zone');
+    if (uploadZone) {
+      uploadZone.querySelector('p').innerHTML =
+        '<strong>Click to pick image</strong> or drag & drop from Finder<br>JPG, PNG, WebP — auto-resized to max 1800px';
+      // Wire the zone click to native file dialog instead of hidden input
+      uploadZone.querySelector('input[type="file"]').style.display = 'none';
+      uploadZone.addEventListener('click', e => {
+        if (e.target.tagName === 'INPUT') return;
+        pickImageElectron();
+      }, true);
+    }
+
+    // Load persisted data from disk
+    const data = await Store.load();
+    if (data) {
+      items = data.items || [];
+      years = data.years || DEFAULT_YEARS;
+      autoSyncEnabled = data.autoSync || false;
+      if (data.settings) localStorage.setItem('pf_settings', JSON.stringify(data.settings));
+      if (data.years)    localStorage.setItem('pf_years', JSON.stringify(data.years));
+    } else {
+      items = [];
+      years = [...DEFAULT_YEARS];
+    }
+  } else {
+    // Browser: load from localStorage (original behaviour)
+    items = JSON.parse(localStorage.getItem('pf_items') || '[]');
+    years = JSON.parse(localStorage.getItem('pf_years') || JSON.stringify(DEFAULT_YEARS));
+    autoSyncEnabled = localStorage.getItem('auto_sync') === 'true';
+  }
+
+  renderTabs();
+  renderList();
+  updateDraftBadge();
+  updateSeriesDatalist();
+  checkUnsaved();
+}
+
+// Boot
+initAsync();
+</script>
+</body>
+</html>

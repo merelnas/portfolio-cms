@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Merel Nas</title>
+  <link rel="stylesheet" href="/style.css">
+  <script>
+    // GitHub Pages SPA redirect trick:
+    // When someone visits /2026, GitHub serves this 404.html.
+    // We detect if it's a year URL and load year.html content,
+    // or redirect /info to info.html, etc.
+    (function() {
+      const path = window.location.pathname;
+      const yearMatch = path.match(/^\/(20\d{2})\/?$/);
+      if (yearMatch) {
+        fetch('/year.html').then(r=>r.text()).then(html=>{ document.open(); document.write(html); document.close(); });
+        return;
+      }
+      if (path.match(/^\/info\/?$/)) {
+        fetch('/info.html').then(r=>r.text()).then(html=>{ document.open(); document.write(html); document.close(); });
+        return;
+      }
+      if (path.match(/^\/texts\/?$/)) {
+        fetch('/texts.html').then(r=>r.text()).then(html=>{ document.open(); document.write(html); document.close(); });
+        return;
+      }
+      if (path.match(/^\/series/)) {
+        fetch('/series.html').then(r=>r.text()).then(html=>{ document.open(); document.write(html); document.close(); });
+        return;
+      }
+      if (path.match(/^\/contact\/?$/)) {
+        fetch('/contact.html').then(r=>r.text()).then(html=>{ document.open(); document.write(html); document.close(); });
+        return;
+      }
+      window.location.replace('/');
+    })();
+  </script>
+</head>
+<body>
+  <p style="font-family:sans-serif;padding:2rem;opacity:.4">Loading…</p>
+</body>
+</html>
