@@ -1,33 +1,28 @@
-name: Build Desktop App
+﻿name: Build Desktop App
 
 on:
   push:
     tags:
-      - 'v*'          # trigger on version tags like v1.0.0
-  workflow_dispatch:  # allow manual trigger from GitHub UI
+      - 'v*'
+  workflow_dispatch:
 
 jobs:
   build-mac:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
-
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
-
       - name: Install dependencies
         run: npm ci
-
       - name: Build macOS app
         run: npm run build:mac
         env:
-          # Code signing — add these secrets in GitHub repo settings
-          # Leave empty to build unsigned (works fine for personal use)
           CSC_IDENTITY_AUTO_DISCOVERY: false
-
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Upload macOS artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -41,19 +36,17 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
-
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
-
       - name: Install dependencies
         run: npm ci
-
       - name: Build Windows app
         run: npm run build:win
-
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Upload Windows artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -61,7 +54,6 @@ jobs:
           path: dist/*.exe
           retention-days: 30
 
-  # Optional: create a GitHub Release with the built files attached
   release:
     needs: [build-mac, build-win]
     runs-on: ubuntu-latest
@@ -71,7 +63,6 @@ jobs:
     steps:
       - name: Download all artifacts
         uses: actions/download-artifact@v4
-
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
@@ -80,3 +71,5 @@ jobs:
             Portfolio-Admin-mac/*.zip
             Portfolio-Admin-win/*.exe
           generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
