@@ -3,493 +3,437 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Nav v1 — Publish button above GitHub</title>
+<title>Portfolio Admin</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500&family=Geist+Mono:wght@400;500&display=swap');
-
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-:root {
-  --bg:       #f7f7f5;
-  --surface:  #ffffff;
-  --border:   #e4e4e0;
-  --border2:  #d0d0ca;
-  --text:     #1a1a18;
-  --muted:    #8a8a84;
-  --accent:   #1a1a18;
-  --blue:     #2563eb;
-  --blue-bg:  #eff6ff;
-  --red:      #dc2626;
-  --red-bg:   #fef2f2;
-  --green:    #16a34a;
-  --green-bg: #f0fdf4;
-  --amber:    #d97706;
-  --amber-bg: #fffbeb;
-  --radius:   8px;
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,"SF Pro Text","Helvetica Neue",sans-serif;background:transparent;color:#1c1c1e;font-size:13px;line-height:1.5;-webkit-font-smoothing:antialiased;}
+a{color:inherit;text-decoration:none;}
+:root{
+  --glass:rgba(255,255,255,.72);
+  --glass-deep:rgba(255,255,255,.55);
+  --glass-light:rgba(255,255,255,.15);
+  --border:rgba(0,0,0,.08);
+  --border-light:rgba(255,255,255,.18);
+  --text:#1c1c1e;
+  --muted:#8e8e93;
+  --blue:#007aff;
+  --green:#34c759;
+  --red:#ff3b30;
+  --amber:#ff9500;
+  --radius:12px;
+  --spring:cubic-bezier(.34,1.6,.64,1);
+  --spring-soft:cubic-bezier(.34,1.3,.64,1);
 }
 
-body { font-family: 'Geist', sans-serif; background: var(--bg); color: var(--text); font-size: 13px; line-height: 1.5; }
+/* shell */
+.shell{display:flex;min-height:100vh;background:transparent;}
 
-/* ── App shell ── */
-.app-shell { display: grid; grid-template-columns: 168px 1fr; min-height: 100vh; }
+/* ── Sidebar ── */
+.sb{
+  width:220px;flex-shrink:0;
+  background:var(--glass);
+  backdrop-filter:blur(40px) saturate(1.8);
+  -webkit-backdrop-filter:blur(40px) saturate(1.8);
+  border-right:0.5px solid var(--border);
+  display:flex;flex-direction:column;
+  padding:14px 8px 12px;
+  position:sticky;top:0;height:100vh;overflow-y:auto;
+}
+.sb-sec{font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.07em;text-transform:uppercase;padding:10px 10px 4px;}
+.ni{display:flex;align-items:center;gap:9px;padding:7px 10px;border-radius:11px;font-size:13px;color:var(--text);cursor:pointer;border:none;background:none;width:100%;text-align:left;transition:background .12s,transform .3s var(--spring);position:relative;}
+.ni:hover{background:rgba(0,0,0,.05);transform:translateX(2px);}
+.ni:active{transform:scale(.96) translateX(1px);}
+.ni.on{background:rgba(0,0,0,.07);font-weight:600;}
+.ni .ic{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;transition:transform .3s var(--spring);}
+.ni:hover .ic{transform:scale(1.18) rotate(-5deg);}
+.ni .nbadge{position:absolute;right:10px;background:var(--red);color:#fff;font-size:10px;font-weight:700;border-radius:100px;padding:1px 6px;}
+.nsp{flex:1;}
+.pub{margin:8px 4px 0;padding:11px;border-radius:13px;background:var(--text);color:#fff;border:none;font-size:13px;font-weight:700;cursor:pointer;width:calc(100% - 8px);transition:transform .3s var(--spring),background .15s;position:relative;overflow:hidden;}
+.pub:hover{background:#2c2c2e;transform:scale(1.03);}
+.pub:active{transform:scale(.96);}
 
-/* ── Nav ── */
-.app-nav {
-  background: var(--surface); border-right: 1px solid var(--border);
-  display: flex; flex-direction: column; padding: 8px 0 0;
-  position: sticky; top: 0; height: 100vh; overflow-y: auto;
-}
-.nav-group-label { font-size: 10px; font-weight: 500; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); padding: 10px 12px 4px; }
-.nav-btn {
-  display: block; width: 100%; text-align: left; padding: 5px 12px;
-  font-family: inherit; font-size: 12px; background: none; border: none;
-  cursor: pointer; color: var(--muted); transition: all .1s; position: relative;
-}
-.nav-btn:hover { color: var(--text); }
-.nav-btn.active { color: var(--text); font-weight: 500; background: var(--bg); }
-.nav-btn.active::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: var(--text); border-radius: 0 2px 2px 0; }
-.nav-badge { display: inline-block; background: var(--amber-bg); color: var(--amber); border: 1px solid #fed7aa; border-radius: 100px; font-size: 10px; font-weight: 500; padding: 0 5px; margin-left: 5px; vertical-align: middle; }
-.nav-btn-bottom { color: var(--muted); font-size: 11px; border-top: 1px solid var(--border); margin: 0 6px; padding: 7px 6px; width: calc(100% - 12px); border-radius: var(--radius); }
-.nav-btn-bottom:hover { background: var(--bg); color: var(--text); }
-.nav-btn-util {
-  display: block; width: 100%; text-align: left;
-  font-family: inherit; font-size: 11px; font-weight: 400;
-  color: var(--muted); background: none; border: none;
-  cursor: pointer; padding: 5px 12px;
-  transition: color .1s;
-}
-.nav-btn-util:hover { color: var(--text); }
-.nav-publish-btn { font-size: 12px; padding: 7px 12px; }
+/* ── Main ── */
+.mn{flex:1;display:flex;flex-direction:column;background:var(--glass-deep);backdrop-filter:blur(30px) saturate(1.6);-webkit-backdrop-filter:blur(30px) saturate(1.6);}
+.toolbar{height:52px;background:rgba(255,255,255,.55);backdrop-filter:blur(20px);border-bottom:0.5px solid var(--border);display:flex;align-items:center;padding:0 18px;gap:8px;flex-shrink:0;}
+.tb-title{font-size:15px;font-weight:700;color:var(--text);flex:1;}
+.pill{height:30px;padding:0 14px;border-radius:100px;border:0.5px solid rgba(0,0,0,.1);background:rgba(255,255,255,.6);backdrop-filter:blur(10px);font-size:12px;font-weight:600;cursor:pointer;color:var(--text);transition:transform .3s var(--spring),background .15s;font-family:inherit;}
+.pill:hover{background:rgba(255,255,255,.85);transform:scale(1.07);}
+.pill:active{transform:scale(.91);}
+.pill.red{background:rgba(255,59,48,.15);border-color:rgba(255,59,48,.2);color:var(--red);}
+.pill.red.on{background:rgba(255,59,48,.8);color:#fff;}
 
-/* ── Content ── */
-.app-content { overflow-y: auto; height: 100vh; }
-.section-page { padding: 24px 28px; max-width: 600px; }
-.section-page.full-width { max-width: none; padding: 0; }
-.section-title { font-size: 15px; font-weight: 500; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+/* ── Panels ── */
+.panels{flex:1;position:relative;overflow:hidden;}
+.panel{position:absolute;inset:0;overflow-y:auto;padding:20px;opacity:0;transform:translateX(20px) scale(.985);pointer-events:none;transition:opacity .28s ease,transform .35s var(--spring-soft);scrollbar-width:thin;}
+.panel::-webkit-scrollbar{width:4px;}
+.panel::-webkit-scrollbar-thumb{background:rgba(0,0,0,.12);border-radius:2px;}
+.panel.in{opacity:1;transform:none;pointer-events:all;}
+.panel.out-l{opacity:0;transform:translateX(-20px) scale(.985);}
+
+/* ── Glass cards ── */
+.gcard{background:rgba(255,255,255,.65);backdrop-filter:blur(20px);border:0.5px solid rgba(255,255,255,.5);border-radius:16px;padding:16px;margin-bottom:12px;}
+.gcard-t{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:12px;}
+
+/* ── Drop zone ── */
+.dz{border:1.5px dashed rgba(0,0,0,.14);border-radius:18px;padding:28px 20px;text-align:center;cursor:pointer;background:rgba(255,255,255,.4);backdrop-filter:blur(12px);margin-bottom:14px;transition:all .3s var(--spring);position:relative;}
+.dz:hover{border-color:rgba(0,0,0,.3);background:rgba(255,255,255,.7);transform:scale(1.02) translateY(-2px);}
+.dz:active{transform:scale(.98);}
+.dz input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+
+.dz .dh{font-size:14px;font-weight:600;margin-bottom:3px;}
+.dz .ds{font-size:12px;color:var(--muted);}
+#preview-thumb{width:100%;max-height:200px;object-fit:cover;display:none;border-radius:14px;margin-bottom:14px;border:0.5px solid var(--border);}
+
+/* ── Form fields ── */
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+.fl{display:flex;flex-direction:column;gap:4px;}
+.fc{grid-column:1/-1;}
+.flb{font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.03em;}
+.fi,.fa,.fsel{width:100%;font-family:inherit;font-size:13px;color:var(--text);background:rgba(255,255,255,.65);backdrop-filter:blur(10px);border:0.5px solid rgba(0,0,0,.12);border-radius:11px;padding:0 13px;height:38px;outline:none;transition:border-color .15s,box-shadow .25s,transform .2s var(--spring);}
+.fa{height:auto;padding:10px 13px;min-height:72px;resize:vertical;}
+.fsel{padding-right:28px;appearance:none;cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238e8e93' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;}
+.fi:focus,.fa:focus,.fsel:focus{border-color:rgba(0,122,255,.5);box-shadow:0 0 0 4px rgba(0,122,255,.1);transform:scale(1.01);}
+.yr-row{display:flex;gap:8px;}
+.yr-row .fi{flex:1;}
+
+/* ── iOS toggle ── */
+.tr{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;background:rgba(255,255,255,.55);backdrop-filter:blur(12px);border-radius:13px;margin-bottom:10px;border:0.5px solid rgba(255,255,255,.5);cursor:pointer;transition:background .15s;}
+.tr:hover{background:rgba(255,255,255,.75);}
+.tl{font-size:13px;font-weight:500;}
+.ts{font-size:11px;color:var(--muted);}
+.tog{width:46px;height:28px;background:rgba(0,0,0,.15);border-radius:100px;position:relative;flex-shrink:0;transition:background .25s var(--spring-soft);cursor:pointer;}
+.tog.on{background:var(--green);}
+.tog::after{content:'';position:absolute;width:24px;height:24px;background:#fff;border-radius:50%;top:2px;left:2px;transition:transform .35s var(--spring);box-shadow:0 2px 6px rgba(0,0,0,.25);}
+.tog.on::after{transform:translateX(18px);}
 
 /* ── Buttons ── */
-.btn { font-family: inherit; font-size: 12px; font-weight: 500; cursor: pointer; border-radius: var(--radius); padding: 5px 12px; display: inline-flex; align-items: center; gap: 5px; transition: all .12s; border: 1px solid transparent; white-space: nowrap; }
-.btn-default { background: var(--surface); border-color: var(--border2); color: var(--text); }
-.btn-default:hover { background: var(--bg); border-color: #b0b0aa; }
-.btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
-.btn-primary:hover { background: #333; }
-.btn-ghost { background: transparent; border-color: transparent; color: var(--muted); padding: 5px 8px; }
-.btn-ghost:hover { background: var(--bg); color: var(--text); }
-.btn-danger { background: var(--red-bg); border-color: #fecaca; color: var(--red); }
-.btn-danger:hover { background: #fee2e2; }
-.btn-sm { font-size: 11px; padding: 3px 9px; }
-.btn-full { width: 100%; justify-content: center; padding: 8px 12px; }
+.ab{width:100%;height:46px;border-radius:13px;background:rgba(28,28,30,.85);backdrop-filter:blur(10px);color:#fff;border:none;font-size:14px;font-weight:700;cursor:pointer;transition:transform .3s var(--spring),background .15s;margin-top:4px;font-family:inherit;}
+.ab:hover{background:rgba(28,28,30,.95);transform:scale(1.02) translateY(-1px);}
+.ab:active{transform:scale(.97);}
+.btn{font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;border-radius:9px;padding:5px 12px;display:inline-flex;align-items:center;gap:5px;transition:transform .25s var(--spring),background .15s;border:0.5px solid rgba(0,0,0,.1);background:rgba(255,255,255,.65);backdrop-filter:blur(8px);color:var(--text);white-space:nowrap;}
+.btn:hover{background:rgba(255,255,255,.9);transform:scale(1.06);}
+.btn:active{transform:scale(.93);}
+.btn-full{width:100%;justify-content:center;height:38px;border-radius:11px;}
+.btn-sm{font-size:11px;padding:3px 9px;}
+.btn-danger{background:rgba(255,59,48,.12);border-color:rgba(255,59,48,.2);color:var(--red);}
+.btn-danger:hover{background:rgba(255,59,48,.22);}
+.btn-ghost{background:transparent;border-color:transparent;color:var(--muted);}
+.btn-ghost:hover{background:rgba(0,0,0,.05);border-color:transparent;}
 
-/* ── Form ── */
-.field { margin-bottom: 12px; }
-.field:last-child { margin-bottom: 0; }
-label { display: block; font-size: 12px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
-input[type="text"], input[type="password"], input[type="number"], textarea, select {
-  width: 100%; font-family: inherit; font-size: 12px; color: var(--text);
-  background: var(--surface); border: 1px solid var(--border2);
-  border-radius: var(--radius); padding: 6px 10px; outline: none;
-  transition: border-color .12s, box-shadow .12s; appearance: none;
-}
-input:focus, textarea:focus, select:focus { border-color: #a0a0f0; box-shadow: 0 0 0 3px rgba(99,102,241,.1); }
-textarea { resize: vertical; min-height: 72px; line-height: 1.5; }
-select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238a8a84' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; padding-right: 28px; cursor: pointer; }
-.settings-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-@media (max-width: 560px) { .settings-row { grid-template-columns: 1fr; } }
-.settings-hint { font-size: 11px; color: var(--muted); margin-top: 3px; }
-.field-row { display: flex; gap: 8px; align-items: flex-start; }
-.field-row .field { flex: 1; margin-bottom: 0; }
+/* ── Seg tabs ── */
+.segtabs{display:flex;background:rgba(0,0,0,.06);border-radius:11px;padding:2px;margin-bottom:16px;}
+.st{flex:1;height:30px;border-radius:9px;border:none;background:none;font-size:12px;font-weight:600;cursor:pointer;color:var(--muted);transition:all .25s var(--spring-soft);font-family:inherit;}
+.st.on{background:rgba(255,255,255,.75);backdrop-filter:blur(10px);color:var(--text);transform:scale(1.03);}
+.st:active{transform:scale(.93);}
 
-/* ── Toggle / checkbox ── */
-.toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); }
-.toggle-row:last-child { border-bottom: none; }
-.toggle-label { font-size: 12px; font-weight: 500; }
-.toggle-desc { font-size: 11px; color: var(--muted); margin-top: 1px; }
-.toggle { position: relative; width: 32px; height: 18px; flex-shrink: 0; }
-.toggle input { opacity: 0; width: 0; height: 0; position: absolute; }
-.toggle-slider { position: absolute; inset: 0; background: var(--border2); border-radius: 100px; cursor: pointer; transition: background .2s; }
-.toggle-slider::before { content: ''; position: absolute; width: 12px; height: 12px; left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: transform .2s; }
-.toggle input:checked + .toggle-slider { background: var(--accent); }
-.toggle input:checked + .toggle-slider::before { transform: translateX(14px); }
+/* ── Works grid ── */
+.wg{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:9px;}
+.wt{aspect-ratio:1;border-radius:14px;overflow:hidden;cursor:pointer;position:relative;background:rgba(255,255,255,.3);transition:transform .3s var(--spring),box-shadow .3s;}
+.wt:hover{transform:scale(1.07) translateY(-3px);box-shadow:0 12px 32px rgba(0,0,0,.18);}
+.wt:active{transform:scale(.92);}
+.wt img{width:100%;height:100%;object-fit:cover;display:block;}
+.wt-ph{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:22px;}
+.wt-lb{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,.6));padding:20px 8px 7px;font-size:11px;color:#fff;font-weight:600;}
+.wt-draft{position:absolute;top:6px;right:6px;background:rgba(255,150,0,.85);color:#fff;font-size:9px;font-weight:700;border-radius:6px;padding:2px 6px;}
 
-/* ── Upload zone ── */
-.upload-zone { border: 1.5px dashed var(--border2); border-radius: var(--radius); padding: 18px 12px; text-align: center; cursor: pointer; transition: all .12s; position: relative; background: var(--bg); margin-bottom: 12px; }
-.upload-zone:hover, .upload-zone.drag { border-color: #a0a0f0; background: #f5f5ff; }
-.upload-zone input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
-.upload-icon { width: 30px; height: 30px; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; display: flex; align-items: center; justify-content: center; margin: 0 auto 8px; font-size: 14px; }
-.upload-zone p { font-size: 12px; color: var(--muted); line-height: 1.5; }
-.upload-zone strong { color: var(--text); font-weight: 500; }
-#preview-thumb { width: 100%; max-height: 160px; object-fit: cover; display: none; border-radius: var(--radius); border: 1px solid var(--border); margin-bottom: 12px; }
-
-/* ── Year row ── */
-.year-row { display: flex; gap: 6px; }
-.year-row select { flex: 1; }
+/* ── Item list rows ── */
+.item-row{display:grid;grid-template-columns:62px 1fr auto;gap:12px;align-items:center;padding:9px 14px;border-bottom:0.5px solid var(--border);transition:background .1s,transform .2s var(--spring);cursor:grab;}
+.item-row:hover{background:rgba(255,255,255,.35);transform:translateX(2px);}
+.item-row:active{cursor:grabbing;}
+.item-thumb{width:62px;height:47px;object-fit:cover;border-radius:9px;border:0.5px solid var(--border);}
+.item-thumb-placeholder{width:62px;height:47px;border-radius:9px;border:0.5px solid var(--border);background:rgba(255,255,255,.4);display:flex;align-items:center;justify-content:center;font-size:18px;}
+.item-name{font-size:13px;font-weight:600;margin-bottom:2px;}
+.item-meta{font-size:11px;color:var(--muted);}
+.item-badges{display:flex;gap:3px;margin-top:3px;flex-wrap:wrap;}
+.badge{display:inline-flex;align-items:center;font-size:10px;font-weight:600;border-radius:100px;padding:1px 7px;}
+.badge-draft{background:rgba(255,149,0,.15);color:var(--amber);border:0.5px solid rgba(255,149,0,.3);}
+.badge-series{background:rgba(0,122,255,.1);color:var(--blue);border:0.5px solid rgba(0,122,255,.2);}
+.badge-year{background:rgba(0,0,0,.06);color:var(--muted);border:0.5px solid rgba(0,0,0,.1);}
+.item-actions{display:flex;gap:4px;flex-shrink:0;}
 
 /* ── Stat bar ── */
-.stat-bar { display: flex; gap: 16px; padding: 7px 16px; border-bottom: 1px solid var(--border); background: var(--bg); flex-wrap: wrap; align-items: center; }
-.stat { font-size: 11px; color: var(--muted); }
-.stat strong { color: var(--text); font-weight: 500; }
-
-/* ── Search bar ── */
-.search-bar { padding: 7px 12px; border-bottom: 1px solid var(--border); background: var(--surface); }
-.search-bar input { background: var(--bg); border-color: var(--border); font-size: 12px; }
-.search-bar input:focus { border-color: #a0a0f0; }
+.stat-bar{display:flex;gap:16px;padding:7px 16px;border-bottom:0.5px solid var(--border);background:rgba(255,255,255,.35);backdrop-filter:blur(10px);flex-wrap:wrap;align-items:center;}
+.stat{font-size:11px;color:var(--muted);}
+.stat strong{color:var(--text);font-weight:600;}
 
 /* ── Year tabs ── */
-.year-tabs { display: flex; border-bottom: 1px solid var(--border); overflow-x: auto; background: var(--surface); }
-.year-tab { font-family: inherit; font-size: 12px; font-weight: 500; padding: 7px 12px; border: none; border-bottom: 2px solid transparent; background: transparent; color: var(--muted); cursor: pointer; margin-bottom: -1px; transition: all .12s; white-space: nowrap; }
-.year-tab:hover { color: var(--text); }
-.year-tab.active { color: var(--text); border-bottom-color: var(--text); }
+.year-tabs{display:flex;border-bottom:0.5px solid var(--border);overflow-x:auto;background:rgba(255,255,255,.4);backdrop-filter:blur(10px);}
+.year-tabs::-webkit-scrollbar{display:none;}
+.year-tab{font-family:inherit;font-size:12px;font-weight:600;padding:7px 12px;border:none;border-bottom:2px solid transparent;background:transparent;color:var(--muted);cursor:pointer;margin-bottom:-1px;transition:all .2s var(--spring-soft);white-space:nowrap;}
+.year-tab:hover{color:var(--text);}
+.year-tab.active{color:var(--text);border-bottom-color:var(--text);}
+.year-tab:active{transform:scale(.94);}
 
-/* ── Item rows ── */
-.item-row { display: grid; grid-template-columns: 58px 1fr auto; gap: 11px; align-items: center; padding: 8px 14px; border-bottom: 1px solid var(--border); transition: background .1s; animation: slideIn .15s ease; cursor: grab; }
-.item-row:hover { background: var(--bg); }
-.item-row.dragging { opacity: .4; cursor: grabbing; }
-.item-row.drag-over { border-top: 2px solid var(--blue); }
-@keyframes slideIn { from { opacity:0; transform:translateY(3px); } to { opacity:1; transform:none; } }
-.item-thumb { width: 58px; height: 44px; object-fit: cover; border-radius: 5px; border: 1px solid var(--border); }
-.item-thumb-placeholder { width: 58px; height: 44px; border-radius: 5px; border: 1px solid var(--border); background: var(--bg); display: flex; align-items: center; justify-content: center; font-size: 16px; }
-.item-name { font-size: 12px; font-weight: 500; margin-bottom: 1px; }
-.item-meta { font-size: 11px; color: var(--muted); }
-.item-badges { display: flex; gap: 3px; margin-top: 3px; flex-wrap: wrap; }
-.badge { display: inline-flex; align-items: center; font-size: 10px; font-weight: 500; border-radius: 100px; padding: 1px 6px; }
-.badge-draft { background: var(--amber-bg); color: var(--amber); border: 1px solid #fed7aa; }
-.badge-series { background: var(--blue-bg); color: var(--blue); border: 1px solid #bfdbfe; }
-.badge-year { background: var(--bg); color: var(--muted); border: 1px solid var(--border); }
-.item-actions { display: flex; gap: 3px; flex-shrink: 0; }
-
-/* ── Empty state ── */
-.empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 48px 20px; color: var(--muted); gap: 10px; text-align: center; }
-.empty-icon { width: 40px; height: 40px; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
-.empty-state p { font-size: 12px; }
-
-/* ── Undo bar ── */
-#undo-bar { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--text); color: #fff; padding: 8px 14px; border-radius: var(--radius); font-size: 12px; display: flex; align-items: center; gap: 10px; transition: transform .25s; z-index: 500; white-space: nowrap; }
-#undo-bar.show { transform: translateX(-50%) translateY(0); }
-#undo-bar button { background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.2); color: #fff; font-family: inherit; font-size: 11px; font-weight: 500; cursor: pointer; border-radius: 5px; padding: 2px 9px; }
-#undo-bar button:hover { background: rgba(255,255,255,.25); }
-
-/* ── Toast ── */
-#toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(8px); background: var(--text); color: #fff; padding: 6px 14px; border-radius: 100px; font-size: 12px; font-weight: 500; opacity: 0; transition: all .2s; pointer-events: none; z-index: 999; white-space: nowrap; }
-#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-
-/* ── Modals ── */
-.overlay { position: fixed; inset: 0; background: rgba(0,0,0,.35); backdrop-filter: blur(2px); display: none; align-items: center; justify-content: center; z-index: 200; padding: 16px; }
-.overlay.open { display: flex; }
-.modal { background: var(--surface); border-radius: 10px; width: 100%; max-width: 440px; box-shadow: 0 16px 48px rgba(0,0,0,.12); overflow: hidden; }
-.modal-head { padding: 13px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
-.modal-head h2 { font-size: 13px; font-weight: 500; }
-.modal-body { padding: 16px; }
-.modal-hint { font-size: 11px; color: var(--muted); margin-bottom: 12px; line-height: 1.6; }
-
-/* ── Publish history ── */
-.history-row { display: flex; align-items: center; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid var(--border); font-size: 12px; }
-.history-row:last-child { border-bottom: none; }
-.history-time { color: var(--muted); font-size: 11px; }
+/* ── Search ── */
+.search-wrap{padding:8px 14px;border-bottom:0.5px solid var(--border);background:rgba(255,255,255,.4);}
+.search-wrap input{background:rgba(255,255,255,.6);border-color:rgba(0,0,0,.1);}
 
 /* ── CV rows ── */
-.cv-row { display: grid; grid-template-columns: 44px 1fr auto; gap: 8px; align-items: start; padding: 7px 9px; border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 5px; background: var(--surface); font-size: 12px; }
-.cv-year { font-size: 11px; color: var(--muted); padding-top: 1px; }
-.cv-text { line-height: 1.4; }
-.cv-venue { font-size: 11px; color: var(--muted); }
+.cv-row{display:grid;grid-template-columns:44px 1fr auto;gap:8px;align-items:start;padding:8px 10px;border:0.5px solid rgba(255,255,255,.5);border-radius:11px;margin-bottom:6px;background:rgba(255,255,255,.5);font-size:12px;transition:transform .2s var(--spring);}
+.cv-row:hover{transform:translateX(2px);}
+.cv-year{font-size:11px;color:var(--muted);}
+.cv-venue{font-size:11px;color:var(--muted);}
 
-/* ── Settings section title ── */
-.settings-section-title { font-size: 10px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
+/* ── Settings rows ── */
+.set-rows{background:rgba(255,255,255,.55);backdrop-filter:blur(16px);border:0.5px solid rgba(255,255,255,.5);border-radius:16px;overflow:hidden;margin-bottom:12px;}
+.sr{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;border-bottom:0.5px solid rgba(0,0,0,.06);font-size:13px;cursor:pointer;transition:background .12s;}
+.sr:last-child{border:none;}
+.sr:hover{background:rgba(255,255,255,.4);}
+.srv{font-size:13px;color:var(--muted);}
 
+/* ── Manage year rows ── */
+.manage-year-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:0.5px solid var(--border);}
+.manage-year-row:last-child{border:none;}
+.manage-year-label{font-size:14px;font-weight:600;}
+.manage-year-count{font-size:12px;color:var(--muted);}
+
+/* ── Empty state ── */
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 24px;color:var(--muted);gap:10px;text-align:center;}
+.empty-icon{width:44px;height:44px;background:rgba(255,255,255,.5);border:0.5px solid var(--border);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;}
+
+/* ── Overlays & modals ── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.3);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;z-index:200;padding:16px;}
+.overlay.open{display:flex;}
+.modal{background:rgba(255,255,255,.82);backdrop-filter:blur(40px) saturate(1.8);border-radius:18px;width:100%;max-width:440px;box-shadow:0 20px 60px rgba(0,0,0,.15);overflow:hidden;border:0.5px solid rgba(255,255,255,.6);}
+.modal-head{padding:13px 16px;border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.modal-head h2{font-size:14px;font-weight:700;}
+.modal-body{padding:16px;}
+
+/* ── Undo + toast ── */
+#undo-bar{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:rgba(28,28,30,.9);backdrop-filter:blur(20px);color:#fff;padding:9px 16px;border-radius:100px;font-size:12px;display:flex;align-items:center;gap:10px;transition:transform .3s var(--spring-soft);z-index:500;white-space:nowrap;border:0.5px solid rgba(255,255,255,.15);}
+#undo-bar.show{transform:translateX(-50%) translateY(0);}
+#undo-bar button{background:rgba(255,255,255,.15);border:0.5px solid rgba(255,255,255,.2);color:#fff;font-family:inherit;font-size:11px;font-weight:600;cursor:pointer;border-radius:100px;padding:3px 11px;transition:background .15s;}
+#undo-bar button:hover{background:rgba(255,255,255,.28);}
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(8px);background:rgba(28,28,30,.88);backdrop-filter:blur(20px);color:#fff;padding:7px 16px;border-radius:100px;font-size:12px;font-weight:600;opacity:0;transition:all .22s var(--spring-soft);pointer-events:none;z-index:999;white-space:nowrap;border:0.5px solid rgba(255,255,255,.15);}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* ── Onboarding ── */
+
+/* ── Writing ── */
+#writing-form-label{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px;}
 </style>
 </head>
 <body>
 
-<!-- ── Main app ── -->
-<div id="app" style="display:block">
-<div class="app-shell">
-
-  <!-- Nav -->
-<nav class="app-nav">
-
-  <button class="nav-btn active" onclick="showSection('sec-add-work',this)">Add work</button>
-  <button class="nav-btn" onclick="showSection('sec-archive',this)">Works <span class="nav-badge" id="nav-draft-badge" style="display:none">drafts</span></button>
-
-  <div style="height:1px;background:var(--border);margin:8px 0"></div>
-
-  <button class="nav-btn" onclick="showSection('sec-identity',this)">Artist info</button>
-  <button class="nav-btn" onclick="showSection('sec-exhibitions',this)">Exhibitions</button>
-  <button class="nav-btn" onclick="showSection('sec-cv-edu',this)">Education</button>
-  <button class="nav-btn" onclick="showSection('sec-writing',this)">Writing</button>
-  <button class="nav-btn" onclick="showSection('sec-contact',this)">Contact</button>
-
-  <div style="flex:1"></div>
-
-  <div style="padding:10px 10px 4px">
-    <button class="btn btn-primary btn-full nav-publish-btn" onclick="publishAll()">
-      Publish <span id="unsaved-dot" style="display:none;width:7px;height:7px;background:rgba(255,255,255,.6);border-radius:50%;margin-left:4px;vertical-align:middle;flex-shrink:0"></span>
-    </button>
+<div class="shell">
+  <!-- Sidebar -->
+  <div class="sb">
+    <div class="sb-sec">Works</div>
+    <button class="ni on" id="ni-add" onclick="goPanel('add',this)"><div class="ic" style="background:rgba(52,199,89,.2)">＋</div>Add work</button>
+    <button class="ni" id="ni-works" onclick="goPanel('works',this)"><div class="ic" style="background:rgba(0,122,255,.2)">⊞</div>Works<span class="nbadge" id="nav-draft-badge" style="display:none"></span></button>
+    <div class="sb-sec">Info</div>
+    <button class="ni" id="ni-exh" onclick="goPanel('exh',this)"><div class="ic" style="background:rgba(255,196,0,.2)">★</div>Exhibitions</button>
+    <button class="ni" id="ni-identity" onclick="goPanel('identity',this)"><div class="ic" style="background:rgba(255,59,48,.15)">✎</div>Artist info</button>
+    <button class="ni" id="ni-cvedu" onclick="goPanel('cvedu',this)"><div class="ic" style="background:rgba(175,82,222,.2)">📄</div>Education</button>
+    <button class="ni" id="ni-writing" onclick="goPanel('writing',this)"><div class="ic" style="background:rgba(52,199,89,.15)">✍</div>Writing</button>
+    <button class="ni" id="ni-contact" onclick="goPanel('contact',this)"><div class="ic" style="background:rgba(90,200,250,.2)">✉</div>Contact</button>
+    <div class="nsp"></div>
+    <button class="ni" id="ni-github" onclick="goPanel('github',this)"><div class="ic" style="background:rgba(0,0,0,.06)">⚙</div>GitHub</button>
+    <button class="ni" id="ni-backup" onclick="openModal('backup-modal')"><div class="ic" style="background:rgba(0,0,0,.06)">💾</div>Backup</button>
+    <button class="ni" id="preview-nav-btn" style="display:none" onclick="openPreviewWindow()"><div class="ic" style="background:rgba(0,0,0,.06)">↗</div>Preview</button>
+    <button class="pub" onclick="publishAll()">Publish ↑ <span id="unsaved-dot" style="display:none;width:6px;height:6px;background:rgba(255,255,255,.7);border-radius:50%;vertical-align:middle;margin-left:4px;display:inline-block"></span></button>
   </div>
-  <button class="nav-btn-util" onclick="showSection('sec-github',this)">GitHub</button>
-  <button class="nav-btn" id="preview-nav-btn" onclick="openPreviewWindow()" style="display:none">Live preview ↗</button>
-  <button class="nav-btn-util" onclick="openModal('backup-modal')">Backup & restore</button>
-</nav>
-  <!-- Content -->
-  <div class="app-content">
 
-    <!-- Add work -->
-    <div id="sec-add-work" class="section-page">
-      <img id="preview-thumb" alt="Preview">
-      <div class="upload-zone" id="upload-zone">
-        <input type="file" id="file-input" accept="image/*" onchange="handleFile(this)">
-        <div class="upload-icon">🖼</div>
-        <p><strong>Click to upload</strong> or drag & drop<br>JPG, PNG, WebP — auto-resized to max 1800px</p>
-      </div>
-      <div class="field">
-        <label for="title-input">Title</label>
-        <input type="text" id="title-input" placeholder="">
-      </div>
-      <div class="field">
-        <label for="desc-input">Description</label>
-        <textarea id="desc-input" placeholder=""></textarea>
-      </div>
-      <div class="settings-row">
-        <div class="field">
-          <label for="material-input">Material</label>
-          <input type="text" id="material-input" placeholder="">
-        </div>
-        <div class="field">
-          <label for="dimensions-input">Dimensions</label>
-          <input type="text" id="dimensions-input" placeholder="">
-        </div>
-      </div>
-      <div class="field">
-        <label for="series-input">Series <span style="font-weight:400;color:var(--muted)">(optional)</span></label>
-        <input type="text" id="series-input" placeholder="" list="series-datalist" autocomplete="off">
-        <datalist id="series-datalist"></datalist>
-      </div>
-      <div class="field">
-        <label>Year</label>
-        <div class="year-row">
-          <select id="year-select"></select>
-          <button class="btn btn-default" onclick="openModal('new-year-modal')">+ New year</button>
-          <button class="btn btn-default" onclick="openModal('manage-years-modal')" style="padding:6px 10px">⋯</button>
-        </div>
-      </div>
-      <div class="toggle-row" style="margin-bottom:16px">
-        <div>
-          <div class="toggle-label">Save as draft</div>
-          <div class="toggle-desc">Draft works are saved but not visible on the website</div>
-        </div>
-        <label class="toggle"><input type="checkbox" id="draft-toggle"><span class="toggle-slider"></span></label>
-      </div>
-      <button class="btn btn-primary btn-full" onclick="addItem()">Add to portfolio</button>
+  <!-- Main content -->
+  <div class="mn">
+    <div class="toolbar">
+      <div class="tb-title" id="tb-title">Add work</div>
+      <button class="pill" id="yr-pill" onclick="openModal('new-year-modal')">＋ Year</button>
+      <button class="pill" onclick="openManageYearsModal()">⋯</button>
     </div>
 
-    <!-- Archive -->
-    <div id="sec-archive" class="section-page full-width" style="display:none">
-      <div class="stat-bar">
-        <div class="stat">Total <strong id="total-count">0</strong></div>
-        <div class="stat" id="year-stat"></div>
-        <div class="stat" id="draft-stat"></div>
-        <div style="flex:1"></div>
-        <div style="display:flex;gap:8px;align-items:center">
-          <select id="sort-select" style="font-size:12px;padding:4px 28px 4px 8px;margin-bottom:0;border-color:var(--border);background:var(--surface)" onchange="renderList()">
-            <option value="newest">Newest first</option>
-            <option value="oldest">Oldest first</option>
-            <option value="title">Title A–Z</option>
-          </select>
-        </div>
-      </div>
-      <div class="search-bar">
-        <input type="text" id="search-input" placeholder="Search by title, material, series…" oninput="renderList()" style="margin-bottom:0">
-      </div>
-      <div class="year-tabs" id="year-tabs"></div>
-      <div id="item-list"></div>
-    </div>
+    <div class="panels">
 
-    <!-- Artist info -->
-    <div id="sec-identity" class="section-page" style="display:none">
-      <div class="settings-row">
-        <div class="field">
-          <label for="s-name">Artist name</label>
-          <input type="text" id="s-name" placeholder="">
+      <!-- ADD WORK -->
+      <div class="panel in" id="p-add">
+        <div id="sec-add-work">
+          <img id="preview-thumb" alt="Preview">
+          <div class="dz" id="upload-zone">
+            <input type="file" id="file-input" accept="image/*" onchange="handleFile(this)">
+            <div class="dh">Drop image here</div>
+            <div class="ds">JPG, PNG, WebP — auto-resized to 1800px</div>
+          </div>
+          <div class="fg">
+            <div class="fl fc"><div class="flb">Title</div><input class="fi" type="text" id="title-input"></div>
+            <div class="fl fc"><div class="flb">Description</div><textarea class="fa" id="desc-input"></textarea></div>
+            <div class="fl"><div class="flb">Material</div><input class="fi" type="text" id="material-input"></div>
+            <div class="fl"><div class="flb">Dimensions</div><input class="fi" type="text" id="dimensions-input"></div>
+            <div class="fl fc"><div class="flb">Series (optional)</div><input class="fi" type="text" id="series-input" list="series-datalist" autocomplete="off"><datalist id="series-datalist"></datalist></div>
+          </div>
+          <div class="fl" style="margin-bottom:10px">
+            <div class="flb">Year</div>
+            <div class="yr-row"><select class="fi fsel" id="year-select"></select></div>
+          </div>
+          <div class="tr" onclick="this.querySelector('.tog').classList.toggle('on');document.getElementById('draft-toggle').checked=this.querySelector('.tog').classList.contains('on')">
+            <div><div class="tl">Save as draft</div><div class="ts">Hidden from website</div></div>
+            <div class="tog"></div>
+          </div>
+          <input type="checkbox" id="draft-toggle" style="display:none">
+          <button class="ab" onclick="addItem()">Add to portfolio</button>
         </div>
-        <div class="field">
-          <label for="s-instagram">Instagram handle</label>
-          <input type="text" id="s-instagram" placeholder="">
-        </div>
       </div>
-      <div class="field">
-        <label for="s-representation">Representation</label>
-        <input type="text" id="s-representation" placeholder="">
-      </div>
-      <div class="field">
-        <label for="s-representation-url">Gallery website</label>
-        <input type="text" id="s-representation-url" placeholder="">
-      </div>
-      <div class="field">
-        <label for="s-location">Based in</label>
-        <input type="text" id="s-location" placeholder="">
-      </div>
-      <div class="field">
-        <label for="s-bio">Bio</label>
-        <textarea id="s-bio" placeholder="" style="min-height:160px"></textarea>
-      </div>
-      <button class="btn btn-primary" onclick="saveSettingsToStorage();markSaved();toast('Saved')">Save</button>
-    </div>
 
-    <!-- Contact -->
-    <div id="sec-contact" class="section-page" style="display:none">
-      <div class="settings-row">
-        <div class="field">
-          <label for="s-email">Email address</label>
-          <input type="text" id="s-email" placeholder="">
-        </div>
-        <div class="field">
-          <label for="s-phone">Phone <span style="font-weight:400;color:var(--muted)">(optional)</span></label>
-          <input type="text" id="s-phone" placeholder="">
+      <!-- WORKS -->
+      <div class="panel" id="p-works">
+        <div id="sec-archive">
+          <div class="year-tabs" id="year-tabs"></div>
+          <div class="search-wrap"><input class="fi" type="text" id="search-input" placeholder="Search by title, material, series…" oninput="renderList()"></div>
+          <div class="stat-bar"><span class="stat">Total <strong id="total-count">0</strong></span><span class="stat" id="year-stat"></span><span class="stat" id="draft-stat"></span></div>
+          <div id="item-list"></div>
+          <select id="sort-select" style="display:none"><option value="newest">Newest first</option><option value="oldest">Oldest first</option><option value="title">Title A–Z</option></select>
         </div>
       </div>
-      <div class="field">
-        <label for="s-cv">Portfolio PDF filename</label>
-        <input type="text" id="s-cv" placeholder="">
-      </div>
-      <div class="field">
-        <label for="s-contact-text">Additional contact text</label>
-        <textarea id="s-contact-text" placeholder=""></textarea>
-      </div>
-      <button class="btn btn-primary" onclick="saveSettingsToStorage();markSaved();toast('Saved')">Save</button>
-    </div>
 
-    <!-- Writing (merged press + texts) -->
-    <div id="sec-writing" class="section-page" style="display:none">
-      <div id="s-writing-list" style="margin-bottom:20px"></div>
-      <div style="border:1px solid var(--border);border-radius:var(--radius);padding:16px;background:var(--bg)">
-        <p class="settings-section-title" style="margin-bottom:12px" id="writing-form-label">Add item</p>
-        <div class="settings-row">
-          <div class="field"><label>Title</label><input type="text" id="s-writing-title" placeholder=""></div>
-          <div class="field"><label>Date</label><input type="text" id="s-writing-date" placeholder=""></div>
+      <!-- EXHIBITIONS -->
+      <div class="panel" id="p-exh">
+        <div class="fg" style="margin-bottom:12px">
+          <div class="fl"><div class="flb">Year</div><input class="fi" type="text" id="s-exh-year" maxlength="4"></div>
+          <div class="fl"><div class="flb">Title</div><input class="fi" type="text" id="s-exh-title"></div>
+          <div class="fl fc"><div class="flb">Venue / location (optional)</div><input class="fi" type="text" id="s-exh-venue"></div>
         </div>
-        <div class="settings-row">
-          <div class="field"><label>Author / publication <span style="font-weight:400;color:var(--muted)">(optional)</span></label><input type="text" id="s-writing-source" placeholder=""></div>
-          <div class="field">
-            <label>Type</label>
-            <select id="s-writing-type">
-              <option value="press">Press / review</option>
-              <option value="essay">Essay / text</option>
-              <option value="statement">Artist statement</option>
-              <option value="interview">Interview</option>
-              <option value="catalogue">Catalogue text</option>
-            </select>
+        <button class="btn btn-full" style="margin-bottom:16px" onclick="addExhibition()">+ Add exhibition</button>
+        <div class="gcard">
+          <div class="gcard-t">Exhibitions</div>
+          <div id="s-exh-list"></div>
+        </div>
+      </div>
+
+      <!-- ARTIST INFO -->
+      <div class="panel" id="p-identity">
+        <div class="fg">
+          <div class="fl"><div class="flb">Artist name</div><input class="fi" type="text" id="s-name" onchange="saveSettingsToStorage()"></div>
+          <div class="fl"><div class="flb">Instagram</div><input class="fi" type="text" id="s-instagram" onchange="saveSettingsToStorage()"></div>
+          <div class="fl"><div class="flb">Representation</div><input class="fi" type="text" id="s-representation" onchange="saveSettingsToStorage()"></div>
+          <div class="fl"><div class="flb">Gallery website</div><input class="fi" type="text" id="s-representation-url" onchange="saveSettingsToStorage()"></div>
+          <div class="fl"><div class="flb">Based in</div><input class="fi" type="text" id="s-location" onchange="saveSettingsToStorage()"></div>
+        </div>
+        <div class="fl" style="margin-bottom:12px"><div class="flb">Bio</div><textarea class="fa" id="s-bio" style="min-height:100px" onchange="saveSettingsToStorage()"></textarea></div>
+        <button class="ab" onclick="saveSettingsToStorage();markSaved();toast('Saved')">Save artist info</button>
+      </div>
+
+      <!-- EDUCATION & CV -->
+      <div class="panel" id="p-cvedu">
+        <div class="gcard" style="margin-bottom:16px">
+          <div class="gcard-t">CV Download (PDF)</div>
+          <div id="cv-upload-zone" class="dz" style="padding:18px">
+            <input type="file" id="cv-file-input" accept=".pdf" onchange="handleCvUpload(this)">
+            <span class="di" style="font-size:24px">📄</span>
+            <div class="dh" style="font-size:13px">Click to upload PDF</div>
+            <div class="ds">Max 20 MB</div>
+          </div>
+          <div id="cv-current" style="display:none;align-items:center;justify-content:space-between;gap:10px">
+            <div style="display:flex;align-items:center;gap:10px"><span style="font-size:20px">📄</span><div><div id="cv-filename-display" style="font-size:13px;font-weight:600"></div><div id="cv-size-display" style="font-size:11px;color:var(--muted)"></div></div></div>
+            <button class="btn btn-danger btn-sm" onclick="removeCvFile()">Remove</button>
           </div>
         </div>
-        <div class="field"><label>Link <span style="font-weight:400;color:var(--muted)">(optional)</span></label><input type="text" id="s-writing-url" placeholder=""></div>
-        <div class="field">
-          <label>Body text <span style="font-weight:400;color:var(--muted)">(optional, shown when no link)</span></label>
-          <textarea id="s-writing-body" placeholder="" style="min-height:100px"></textarea>
-        </div>
-        <div style="display:flex;gap:8px">
-          <button class="btn btn-default" onclick="addWriting()">+ Add</button>
-          <button class="btn btn-ghost btn-sm" id="writing-cancel-btn" style="display:none" onclick="cancelWritingEdit()">Cancel</button>
+        <div class="gcard">
+          <div class="gcard-t">Education</div>
+          <div id="s-edu-list" style="margin-bottom:12px"></div>
+          <div class="fg" style="margin-bottom:8px">
+            <div class="fl"><div class="flb">Year</div><input class="fi" type="text" id="s-edu-year" maxlength="4"></div>
+            <div class="fl"><div class="flb">Degree / programme</div><input class="fi" type="text" id="s-edu-title"></div>
+            <div class="fl fc"><div class="flb">Institution</div><input class="fi" type="text" id="s-edu-institution"></div>
+          </div>
+          <button class="btn" onclick="addEducation()">+ Add education</button>
         </div>
       </div>
-    </div>
 
-    <!-- Exhibitions -->
-    <div id="sec-exhibitions" class="section-page" style="display:none">
-      <div id="s-exh-list" style="margin-bottom:20px"></div>
-      <div style="border:1px solid var(--border);border-radius:var(--radius);padding:16px;background:var(--bg)">
-        <p class="settings-section-title" style="margin-bottom:12px">Add exhibition</p>
-        <div class="settings-row">
-          <div class="field"><label>Year</label><input type="text" id="s-exh-year" maxlength="4"></div>
-          <div class="field"><label>Title</label><input type="text" id="s-exh-title"></div>
-        </div>
-        <div class="field"><label>Venue / location</label><input type="text" id="s-exh-venue"></div>
-        <button class="btn btn-default" onclick="addExhibition()">+ Add</button>
-      </div>
-    </div>
-
-    <!-- CV & Education (combined) -->
-    <div id="sec-cv-edu" class="section-page" style="display:none">
-
-      <div style="margin-bottom:32px">
-        <h3 style="font-size:13px;font-weight:500;margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border)">CV download</h3>
-        <div id="cv-upload-zone" class="upload-zone" style="border-style:dashed">
-          <input type="file" id="cv-file-input" accept=".pdf" onchange="handleCvUpload(this)">
-          <div class="upload-icon">📄</div>
-          <p><strong>Click to upload PDF</strong> or drag & drop</p>
-        </div>
-        <div id="cv-current" style="display:none;border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;background:var(--surface);align-items:center;justify-content:space-between;margin-top:8px">
-          <div style="display:flex;align-items:center;gap:10px">
-            <span style="font-size:20px">📄</span>
-            <div>
-              <div style="font-size:13px;font-weight:500" id="cv-filename-display">No CV uploaded</div>
-              <div style="font-size:12px;color:var(--muted)" id="cv-size-display"></div>
+      <!-- WRITING -->
+      <div class="panel" id="p-writing">
+        <div class="gcard">
+          <div id="writing-form-label" class="gcard-t">Add item</div>
+          <div class="fg">
+            <div class="fl"><div class="flb">Title</div><input class="fi" type="text" id="s-writing-title"></div>
+            <div class="fl"><div class="flb">Date</div><input class="fi" type="text" id="s-writing-date"></div>
+            <div class="fl"><div class="flb">Author / publication</div><input class="fi" type="text" id="s-writing-source"></div>
+            <div class="fl"><div class="flb">Type</div>
+              <select class="fi fsel" id="s-writing-type">
+                <option value="press">Press / review</option>
+                <option value="essay">Essay / text</option>
+                <option value="statement">Artist statement</option>
+                <option value="interview">Interview</option>
+                <option value="catalogue">Catalogue text</option>
+              </select>
             </div>
+            <div class="fl fc"><div class="flb">Link (optional)</div><input class="fi" type="text" id="s-writing-url"></div>
+            <div class="fl fc"><div class="flb">Body text (optional)</div><textarea class="fa" id="s-writing-body" style="min-height:60px"></textarea></div>
           </div>
-          <button class="btn btn-danger btn-sm" onclick="removeCvFile()">Remove</button>
+          <div style="display:flex;gap:6px;margin-top:10px">
+            <button class="btn" onclick="addWriting()">+ Add</button>
+            <button class="btn btn-ghost btn-sm" id="writing-cancel-btn" style="display:none" onclick="cancelWritingEdit()">Cancel</button>
+          </div>
+        </div>
+        <div style="margin-top:12px" id="s-writing-list"></div>
+      </div>
+
+      <!-- CONTACT -->
+      <div class="panel" id="p-contact">
+        <div class="fg">
+          <div class="fl"><div class="flb">Email</div><input class="fi" type="text" id="s-email" onchange="saveSettingsToStorage()"></div>
+          <div class="fl"><div class="flb">Phone (optional)</div><input class="fi" type="text" id="s-phone" onchange="saveSettingsToStorage()"></div>
+          <div class="fl fc"><div class="flb">CV / portfolio PDF filename</div><input class="fi" type="text" id="s-cv" onchange="saveSettingsToStorage()"></div>
+          <div class="fl fc"><div class="flb">Additional contact text</div><textarea class="fa" id="s-contact-text" onchange="saveSettingsToStorage()"></textarea></div>
+        </div>
+        <button class="ab" style="margin-top:4px" onclick="saveSettingsToStorage();markSaved();toast('Saved')">Save contact</button>
+      </div>
+
+      <!-- GITHUB -->
+      <div class="panel" id="p-github">
+        <div class="gcard">
+          <div class="gcard-t">GitHub connection</div>
+          <div class="fg">
+            <div class="fl fc"><div class="flb">Personal access token</div><input class="fi" type="password" id="gh-token" placeholder="ghp_..."></div>
+            <div class="fl"><div class="flb">GitHub username</div><input class="fi" type="text" id="gh-owner"></div>
+            <div class="fl"><div class="flb">Repository name</div><input class="fi" type="text" id="gh-repo"></div>
+            <div class="fl fc"><div class="flb">Branch</div><input class="fi" type="text" id="gh-branch" placeholder="main"></div>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:12px">
+            <button class="btn" onclick="testGitHubConnection()">Test connection</button>
+            <button class="ab" style="margin:0;flex:1;height:38px;font-size:13px" onclick="saveGitHubSettings()">Save</button>
+          </div>
+          <div id="gh-status" style="font-size:12px;margin-top:10px;line-height:1.6"></div>
+          <div id="gh-status-publish" style="display:none"></div>
+        </div>
+        <div class="gcard">
+          <div class="gcard-t">Auto-sync</div>
+          <div class="tr" onclick="toggleAutoSync(!document.getElementById('auto-sync-toggle').checked);this.querySelector('.tog').classList.toggle('on')">
+            <div><div class="tl">Publish on add</div><div class="ts">Automatically push when adding a work</div></div>
+            <div class="tog" id="auto-sync-tog"></div>
+          </div>
+          <input type="checkbox" id="auto-sync-toggle" style="display:none" onchange="toggleAutoSync(this.checked)">
         </div>
       </div>
 
-      <div>
-        <h3 style="font-size:13px;font-weight:500;margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border)">Education</h3>
-        <div id="s-edu-list" style="margin-bottom:16px"></div>
-        <div style="border:1px solid var(--border);border-radius:var(--radius);padding:16px;background:var(--bg)">
-          <p class="settings-section-title" style="margin-bottom:12px">Add education</p>
-          <div class="settings-row">
-            <div class="field"><label>Year</label><input type="text" id="s-edu-year" maxlength="4"></div>
-            <div class="field"><label>Degree / programme</label><input type="text" id="s-edu-title"></div>
-          </div>
-          <div class="field"><label>Institution</label><input type="text" id="s-edu-institution"></div>
-          <button class="btn btn-default" onclick="addEducation()">+ Add</button>
-        </div>
-      </div>
     </div>
-
-    <!-- GitHub settings -->
-    <div id="sec-github" class="section-page" style="display:none">
-      <div class="field">
-        <label for="gh-token">Personal access token</label>
-        <input type="password" id="gh-token" placeholder="ghp_...">
-      </div>
-      <div class="settings-row">
-        <div class="field"><label for="gh-owner">GitHub username</label><input type="text" id="gh-owner" placeholder=""></div>
-        <div class="field"><label for="gh-repo">Repository name</label><input type="text" id="gh-repo" placeholder=""></div>
-      </div>
-      <div class="field"><label for="gh-branch">Branch</label><input type="text" id="gh-branch" placeholder="main"></div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">
-        <button class="btn btn-default" onclick="testGitHubConnection()">Test connection</button>
-        <button class="btn btn-primary" onclick="saveGitHubSettings()">Save</button>
-      </div>
-      <div id="gh-status" style="font-size:13px;line-height:1.6"></div>
-    </div>
-
-  </div><!-- /.app-content -->
-</div><!-- /.app-shell -->
-</div><!-- /#app -->
+  </div>
+</div>
 
 <!-- Edit modal -->
 <div class="overlay" id="edit-modal">
   <div class="modal">
-    <div class="modal-head"><h2>Edit work</h2><button class="btn btn-ghost btn-sm" onclick="closeModal('edit-modal')">✕ Close</button></div>
-    <div class="modal-body">
-      <div class="field"><label>Title</label><input type="text" id="edit-title"></div>
-      <div class="field"><label>Description</label><textarea id="edit-desc"></textarea></div>
-      <div class="settings-row">
-        <div class="field"><label>Material</label><input type="text" id="edit-material"></div>
-        <div class="field"><label>Dimensions</label><input type="text" id="edit-dimensions"></div>
+    <div class="modal-head"><h2>Edit work</h2><button class="btn btn-ghost btn-sm" onclick="closeModal('edit-modal')">✕</button></div>
+    <div class="modal-body" style="max-height:70vh;overflow-y:auto">
+      <div class="fl" style="margin-bottom:10px"><div class="flb">Title</div><input class="fi" type="text" id="edit-title"></div>
+      <div class="fl" style="margin-bottom:10px"><div class="flb">Description</div><textarea class="fa" id="edit-desc"></textarea></div>
+      <div class="fg" style="margin-bottom:10px">
+        <div class="fl"><div class="flb">Material</div><input class="fi" type="text" id="edit-material"></div>
+        <div class="fl"><div class="flb">Dimensions</div><input class="fi" type="text" id="edit-dimensions"></div>
       </div>
-      <div class="field"><label>Series</label><input type="text" id="edit-series" placeholder=""></div>
-      <div class="field"><label>Year</label><select id="edit-year"></select></div>
-      <div class="toggle-row" style="margin-bottom:16px">
-        <div><div class="toggle-label">Draft</div><div class="toggle-desc">Not visible on website</div></div>
-        <label class="toggle"><input type="checkbox" id="edit-draft"><span class="toggle-slider"></span></label>
+      <div class="fl" style="margin-bottom:10px"><div class="flb">Series</div><input class="fi" type="text" id="edit-series"></div>
+      <div class="fl" style="margin-bottom:10px"><div class="flb">Year</div><select class="fi fsel" id="edit-year"></select></div>
+      <div class="tr" style="margin-bottom:10px" onclick="document.getElementById('edit-draft').checked=!document.getElementById('edit-draft').checked;this.querySelector('.tog').classList.toggle('on',document.getElementById('edit-draft').checked)">
+        <div><div class="tl">Draft</div><div class="ts">Not visible on website</div></div>
+        <div class="tog" id="edit-draft-tog"></div>
       </div>
-      <div class="field" style="border-top:1px solid var(--border);padding-top:14px;margin-top:4px">
-        <label>Replace image <span style="font-weight:400;color:var(--muted)">(optional)</span></label>
-        <img id="edit-image-preview" style="display:none;width:100%;max-height:140px;object-fit:cover;border-radius:var(--radius);border:1px solid var(--border);margin-bottom:8px" alt="New image preview">
-        <div style="display:flex;gap:8px">
-          <button class="btn btn-default btn-full" id="edit-replace-btn" onclick="document.getElementById('edit-file-input').click()">&#8593; Choose new image</button>
-          <input type="file" id="edit-file-input" accept="image/*" style="display:none" onchange="handleEditFile(this)">
-        </div>
-        <p id="edit-image-hint" style="display:none;font-size:11px;color:var(--amber);margin-top:4px">New image staged — click Save to apply</p>
+      <input type="checkbox" id="edit-draft" style="display:none">
+      <div style="border-top:0.5px solid var(--border);padding-top:12px;margin-top:4px">
+        <div class="flb" style="margin-bottom:8px">Replace image (optional)</div>
+        <img id="edit-image-preview" style="display:none;width:100%;max-height:120px;object-fit:cover;border-radius:11px;border:0.5px solid var(--border);margin-bottom:8px" alt="">
+        <button class="btn btn-full" id="edit-replace-btn" onclick="document.getElementById('edit-file-input').click()">↑ Choose new image</button>
+        <input type="file" id="edit-file-input" accept="image/*" style="display:none" onchange="handleEditFile(this)">
+        <div id="edit-image-hint" style="display:none;font-size:11px;color:var(--amber);margin-top:4px">New image staged — click Save to apply</div>
       </div>
-      <button class="btn btn-primary btn-full" onclick="saveEdit()">Save changes</button>
+      <button class="ab" style="margin-top:12px" onclick="saveEdit()">Save changes</button>
     </div>
   </div>
 </div>
@@ -497,11 +441,10 @@ select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.o
 <!-- New year modal -->
 <div class="overlay" id="new-year-modal">
   <div class="modal">
-    <div class="modal-head"><h2>Add new year</h2><button class="btn btn-ghost btn-sm" onclick="closeModal('new-year-modal')">✕ Close</button></div>
+    <div class="modal-head"><h2>Add year</h2><button class="btn btn-ghost btn-sm" onclick="closeModal('new-year-modal')">✕</button></div>
     <div class="modal-body">
-      <div class="field"><label>Year</label><input type="text" id="new-year-input" placeholder="e.g. 2027" maxlength="4"></div>
-      <p class="modal-hint">The website handles new years automatically — no HTML file needed.</p>
-      <button class="btn btn-primary btn-full" onclick="confirmNewYear()">Add year</button>
+      <div class="fl" style="margin-bottom:12px"><div class="flb">Year</div><input class="fi" type="text" id="new-year-input" maxlength="4"></div>
+      <button class="ab" style="height:40px;font-size:13px" onclick="confirmNewYear()">Add year</button>
     </div>
   </div>
 </div>
@@ -509,28 +452,23 @@ select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.o
 <!-- Manage years modal -->
 <div class="overlay" id="manage-years-modal">
   <div class="modal">
-    <div class="modal-head"><h2>Manage years</h2><button class="btn btn-ghost btn-sm" onclick="closeModal('manage-years-modal')">✕ Close</button></div>
-    <div class="modal-body">
-      <p class="modal-hint">Delete a year and all its works, or keep the works.</p>
-      <div id="manage-years-list"></div>
-    </div>
+    <div class="modal-head"><h2>Manage years</h2><button class="btn btn-ghost btn-sm" onclick="closeModal('manage-years-modal')">✕</button></div>
+    <div class="modal-body"><div id="manage-years-list"></div></div>
   </div>
 </div>
 
 <!-- Backup modal -->
 <div class="overlay" id="backup-modal">
   <div class="modal">
-    <div class="modal-head"><h2>Backup & restore</h2><button class="btn btn-ghost btn-sm" onclick="closeModal('backup-modal')">✕ Close</button></div>
+    <div class="modal-head"><h2>Backup & restore</h2><button class="btn btn-ghost btn-sm" onclick="closeModal('backup-modal')">✕</button></div>
     <div class="modal-body">
-      <div style="display:flex;gap:8px;flex-direction:column">
-        <button class="btn btn-primary btn-full" onclick="exportBackup()">&#8595; Download full backup</button>
-        <div style="position:relative">
-          <button class="btn btn-default btn-full" id="restore-btn" onclick="IS_ELECTRON ? restoreBackup() : document.getElementById('restore-input').click()">&#8593; Restore from backup</button>
-          <input type="file" id="restore-input" accept=".json" style="display:none" onchange="restoreBackup(this)">
-        </div>
-        <button class="btn btn-ghost btn-sm" id="show-backups-btn" onclick="window.electronAPI && window.electronAPI.showBackupDir()" style="display:none;font-size:12px">Show auto-backups folder</button>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <button class="btn btn-full" onclick="exportBackup()">↓ Download backup</button>
+        <button class="btn btn-full" onclick="IS_ELECTRON?restoreBackup():document.getElementById('restore-input').click()">↑ Restore from backup</button>
+        <input type="file" id="restore-input" accept=".json" style="display:none" onchange="restoreBackup(this)">
+        <button class="btn btn-ghost btn-sm" id="show-backups-btn" style="display:none" onclick="window.electronAPI&&window.electronAPI.showBackupDir()">Show auto-backups folder</button>
       </div>
-      <p style="font-size:11px;color:var(--muted);margin-top:12px;line-height:1.6">Restoring will replace all current data. This cannot be undone.</p>
+      <div style="font-size:11px;color:var(--muted);margin-top:10px;line-height:1.6">Restoring replaces all current data.</div>
     </div>
   </div>
 </div>
@@ -609,24 +547,24 @@ let editingIndex     = null;
 let activeTab        = 'all';
 let deletedItem      = null;
 let undoTimer        = null;
-let autoSyncEnabled  = false; // kept for legacy data compat, not used in UI
+let autoSyncEnabled  = false;
 
 function sortedYears() { return [...years].sort((a,b) => b-a); }
+
 
 // ─────────────────────────────────────────────
 // NAV
 // ─────────────────────────────────────────────
+// Legacy showSection shim
 function showSection(id, btn) {
-  document.querySelectorAll('.section-page').forEach(el => el.style.display = 'none');
-  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-  const sec = document.getElementById(id);
-  if (sec) sec.style.display = id === 'sec-archive' ? 'block' : 'block';
-  if (btn) btn.classList.add('active');
-  const settingsSections = ['sec-identity','sec-contact','sec-writing','sec-cv-edu','sec-exhibitions'];
-  if (settingsSections.includes(id)) loadSettingsForm();
-  if (id === 'sec-github') loadGitHubForm();
-  if (id === 'sec-archive') { renderTabs(); renderList(); }
+  const map = {'sec-add-work':'add','sec-archive':'works','sec-exhibitions':'exh',
+    'sec-identity':'identity','sec-cv-edu':'cvedu','sec-writing':'writing',
+    'sec-contact':'contact','sec-github':'github'};
+  const panelId = map[id] || 'add';
+  const ni = document.getElementById('ni-' + panelId);
+  goPanel(panelId, ni || document.querySelector('.ni'));
 }
+
 
 // ─────────────────────────────────────────────
 // UPLOAD + IMAGE RESIZE
@@ -714,6 +652,7 @@ async function addItem() {
   renderTabs(); renderList(); resetForm();
   updateDraftBadge();
   toast(draft ? 'Saved as draft' : 'Work added to ' + year);
+  if (autoSyncEnabled && !draft) autoSync();
 }
 
 function resetForm() {
@@ -777,6 +716,7 @@ async function saveEdit() {
   renderTabs(); renderList(); closeModal('edit-modal');
   updateDraftBadge();
   toast('Saved');
+  if (autoSyncEnabled) autoSync();
 }
 
 // ─────────────────────────────────────────────
@@ -925,7 +865,7 @@ function openManageYearsModal() { renderManageYears(); openModal('manage-years-m
 function renderManageYears() {
   const sy = sortedYears();
   const list = document.getElementById('manage-years-list');
-  list.innerHTML = !sy.length ? '<p style="font-size:12px;color:var(--muted)">No years added yet.</p>' :
+  list.innerHTML = !sy.length ? '<p style="font-size:13px;color:var(--muted)">No years added yet.</p>' :
     sy.map(y => {
       const count = items.filter(i => i.year == y).length;
       return `<div class="manage-year-row">
@@ -951,8 +891,8 @@ function deleteYear(y) {
 function updateDraftBadge() {
   const drafts = items.filter(i => i.draft).length;
   const badge = document.getElementById('nav-draft-badge');
-  badge.style.display = drafts ? '' : 'none';
-  badge.textContent = drafts + ' draft' + (drafts!==1?'s':'');
+  badge.style.display = drafts ? 'flex' : 'none';
+  badge.textContent = drafts;
 }
 
 // ─────────────────────────────────────────────
@@ -961,9 +901,111 @@ function updateDraftBadge() {
 function getSettings() {
   return Object.assign({
     name:'', instagram:'', email:'', phone:'', cvFile:'', cvData:null, bio:'', contactText:'',
-    exhibitions:[], education:[], press:[], texts:[], writing:[],
-    representation:'', representationUrl:'', location:''
+    navYears:[], exhibitions:[], education:[], press:[], texts:[], writing:[], seriesMeta:{},
+    representation:'', representationUrl:'', location:'',
+    pages: defaultPages()
   }, JSON.parse(localStorage.getItem('pf_settings') || '{}'));
+}
+
+// ── Default pages ──
+function defaultPages() {
+  return [
+    { type:'home',         label:'Home',           enabled:true  },
+    { type:'works-year',   label:'Works',          enabled:true  },
+    { type:'works-series', label:'Series',         enabled:false },
+    { type:'cv',           label:'CV',             enabled:false },
+    { type:'info',         label:'Info',           enabled:true  },
+    { type:'texts',        label:'Texts',          enabled:false },
+    { type:'contact',      label:'Contact',        enabled:false },
+  ];
+}
+
+const PAGE_DESCRIPTIONS = {
+  'home':         'The homepage showing all works',
+  'works-year':   'Gallery organised by year — uses the year links below',
+  'works-series': 'Gallery organised by series name',
+  'cv':           'Auto-generated from exhibitions, education & press',
+  'info':         'Bio, contact, representation',
+  'texts':        'Artist statements & longer writing',
+  'contact':      'Standalone contact page',
+};
+
+// ── Render page manager ──
+function renderPageManager() {
+  const s = getSettings();
+  const pages = s.pages && s.pages.length ? s.pages : defaultPages();
+  const list = document.getElementById('nav-pages-list'); if (!list) return;
+  if (!list) return;
+
+  list.innerHTML = pages.map((page, i) => `
+    <div class="page-row ${!page.enabled ? 'disabled' : ''}"
+         draggable="true"
+         data-page-index="${i}"
+         ondragstart="pageDragStart(event,${i})"
+         ondragover="pageDragOver(event)"
+         ondrop="pageDrop(event,${i})"
+         ondragleave="pageDragLeave(event)"
+         ondragend="pageDragEnd(event)">
+      <span class="drag-handle" title="Drag to reorder">⠿</span>
+      <label class="toggle" onclick="event.stopPropagation()">
+        <input type="checkbox" ${page.enabled ? 'checked' : ''}
+          onchange="togglePage(${i}, this.checked)">
+        <span class="toggle-slider"></span>
+      </label>
+      <div>
+        <input class="page-label-input" type="text" value="${esc(page.label)}"
+          onchange="renamePage(${i}, this.value)"
+          onclick="event.stopPropagation()"
+          title="Click to rename">
+        <div style="font-size:11px;color:var(--muted);margin-top:1px;padding-left:8px">${PAGE_DESCRIPTIONS[page.type] || ''}</div>
+      </div>
+      <span class="page-type-tag">${page.type}</span>
+      <button class="btn btn-ghost btn-sm" onclick="resetPageLabel(${i})" title="Reset label to default" style="padding:4px 6px;font-size:11px">↺</button>
+    </div>`).join('');
+}
+
+function togglePage(i, enabled) {
+  const s = getSettings();
+  if (!s.pages) s.pages = defaultPages();
+  s.pages[i].enabled = enabled;
+  localStorage.setItem('pf_settings', JSON.stringify(s));
+  renderPageManager();
+  toast(enabled ? `"${s.pages[i].label}" enabled` : `"${s.pages[i].label}" hidden`);
+}
+
+function renamePage(i, label) {
+  const s = getSettings();
+  if (!s.pages) s.pages = defaultPages();
+  s.pages[i].label = label.trim() || s.pages[i].label;
+  localStorage.setItem('pf_settings', JSON.stringify(s));
+}
+
+function resetPageLabel(i) {
+  const defaults = defaultPages();
+  const s = getSettings();
+  if (!s.pages) s.pages = defaultPages();
+  s.pages[i].label = defaults[i] ? defaults[i].label : s.pages[i].label;
+  localStorage.setItem('pf_settings', JSON.stringify(s));
+  renderPageManager();
+  toast('Label reset');
+}
+
+// Page drag-to-reorder
+let pageDragSrc = null;
+function pageDragStart(e, i) { pageDragSrc = i; e.currentTarget.classList.add('dragging'); }
+function pageDragOver(e) { e.preventDefault(); e.currentTarget.classList.add('drag-over'); }
+function pageDragLeave(e) { e.currentTarget.classList.remove('drag-over'); }
+function pageDragEnd(e) { e.currentTarget.classList.remove('dragging'); }
+function pageDrop(e, targetI) {
+  e.currentTarget.classList.remove('drag-over');
+  if (pageDragSrc === null || pageDragSrc === targetI) return;
+  const s = getSettings();
+  if (!s.pages) s.pages = defaultPages();
+  const moved = s.pages.splice(pageDragSrc, 1)[0];
+  s.pages.splice(targetI, 0, moved);
+  pageDragSrc = null;
+  localStorage.setItem('pf_settings', JSON.stringify(s));
+  renderPageManager();
 }
 
 function loadSettingsForm() {
@@ -973,18 +1015,21 @@ function loadSettingsForm() {
   set('s-phone', s.phone); set('s-cv', s.cvFile); set('s-bio', s.bio);
   set('s-contact-text', s.contactText); set('s-representation', s.representation);
   set('s-representation-url', s.representationUrl); set('s-location', s.location);
+  renderNavYears(s.navYears || []);
   renderCvList('s-exh-list', s.exhibitions || [], 'exhibition');
   renderCvList('s-edu-list', s.education   || [], 'education');
   renderPressList(s.press || []);
   renderTextsList(s.texts || []);
   renderWritingList(s.writing || []);
   renderCvUploadStatus(s);
+  renderSeriesList(s);
+  renderPageManager();
 }
 
 function renderCvList(containerId, items, type) {
   const el = document.getElementById(containerId);
   if (!el) return;
-  if (!items.length) { el.innerHTML = '<p style="font-size:12px;color:var(--muted)">None added yet.</p>'; return; }
+  if (!items.length) { el.innerHTML = '<p style="font-size:13px;color:var(--muted)">None added yet.</p>'; return; }
   el.innerHTML = [...items].sort((a,b) => (b.year||0)-(a.year||0)).map((item, i) => `
     <div class="cv-row">
       <span class="cv-year">${esc(String(item.year||''))}</span>
@@ -1010,7 +1055,7 @@ function renderWritingList(writing) {
   const el = document.getElementById('s-writing-list');
   if (!el) return;
   if (!writing.length) {
-    el.innerHTML = '<p style="font-size:12px;color:var(--muted)">No items added yet.</p>';
+    el.innerHTML = '<p style="font-size:13px;color:var(--muted)">No items added yet.</p>';
     return;
   }
   el.innerHTML = writing.map((w, i) => `
@@ -1174,7 +1219,7 @@ function renderCvUploadStatus(s) {
   }
 }
 
-// ── Series ── (series name lives on each artwork; no separate management UI)
+// ── Series ──
 function getSeriesFromItems() {
   const map = {};
   items.filter(i => i.series && !i.draft).forEach(item => {
@@ -1182,6 +1227,77 @@ function getSeriesFromItems() {
     map[item.series].push(item);
   });
   return map;
+}
+
+function renderSeriesList(s) {
+  const el = document.getElementById('s-series-list');
+  if (!el) return;
+  const seriesMap = getSeriesFromItems();
+  const names     = Object.keys(seriesMap);
+  if (!names.length) {
+    el.innerHTML = '<p style="font-size:13px;color:var(--muted)">No series yet. Add a series name to artworks in <strong>Add work</strong> or <strong>Archive</strong>.</p>';
+    return;
+  }
+  const meta  = s.seriesMeta  || {};
+  const order = s.seriesOrder || [];
+  const sorted = [...order.filter(n=>names.includes(n)), ...names.filter(n=>!order.includes(n))];
+  el.innerHTML = sorted.map((name, i) => {
+    const m = meta[name] || {};
+    const works = seriesMap[name];
+    const cover = m.cover || (works[0] && works[0].image) || '';
+    const safeName = name.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    return '<div style="border:1px solid var(--border);border-radius:var(--radius);padding:14px;background:var(--surface);margin-bottom:10px;cursor:grab" draggable="true" ondragstart="seriesOrderDragStart(event,' + i + ')" ondragover="seriesOrderDragOver(event)" ondrop="seriesOrderDrop(event,' + i + ')" ondragleave="seriesOrderDragLeave(event)">'
+      + '<div style="display:flex;gap:12px;align-items:flex-start;margin-bottom:10px">'
+      + '<span style="font-size:14px;color:var(--muted);padding-top:2px;user-select:none">⠿</span>'
+      + (cover ? '<img src="' + cover + '" style="width:60px;height:45px;object-fit:cover;border-radius:5px;border:1px solid var(--border);flex-shrink:0">' : '<div style="width:60px;height:45px;border:1px solid var(--border);border-radius:5px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">🖼</div>')
+      + '<div><div style="font-size:13px;font-weight:500">' + esc(name) + '</div><div style="font-size:12px;color:var(--muted)">' + works.length + ' work' + (works.length!==1?'s':'') + '</div></div>'
+      + '</div>'
+      + '<div class="field" style="margin-bottom:0"><label>Description</label>'
+      + '<textarea style="min-height:60px;margin-bottom:0" placeholder="Short description…" onchange="updateSeriesMeta(\'' + safeName + '\',\'desc\',this.value)">' + esc(m.desc||'') + '</textarea>'
+      + '</div></div>';
+  }).join('');
+}
+
+let seriesOrderDragSrc = null;
+function seriesOrderDragStart(e,i) { seriesOrderDragSrc=i; e.currentTarget.style.opacity='.4'; }
+function seriesOrderDragOver(e) { e.preventDefault(); e.currentTarget.style.borderTop='2px solid var(--blue)'; }
+function seriesOrderDragLeave(e) { e.currentTarget.style.borderTop=''; }
+function seriesOrderDrop(e,targetI) {
+  e.currentTarget.style.borderTop=''; e.currentTarget.style.opacity='';
+  if (seriesOrderDragSrc===null||seriesOrderDragSrc===targetI) { seriesOrderDragSrc=null; return; }
+  const s=getSettings(); const seriesMap=getSeriesFromItems(); const names=Object.keys(seriesMap);
+  const order=s.seriesOrder&&s.seriesOrder.length?s.seriesOrder:names;
+  const sorted=[...order.filter(n=>names.includes(n)),...names.filter(n=>!order.includes(n))];
+  const moved=sorted.splice(seriesOrderDragSrc,1)[0]; sorted.splice(targetI,0,moved);
+  s.seriesOrder=sorted; seriesOrderDragSrc=null;
+  localStorage.setItem('pf_settings',JSON.stringify(s)); renderSeriesList(s);
+}
+
+function updateSeriesMeta(name, key, val) {
+  const s=getSettings(); if (!s.seriesMeta) s.seriesMeta={};
+  if (!s.seriesMeta[name]) s.seriesMeta[name]={};
+  s.seriesMeta[name][key]=val;
+  localStorage.setItem('pf_settings',JSON.stringify(s));
+}
+
+
+function renderNavYears(navYears) {
+  const list=document.getElementById('s-nav-years-list');
+  if (!list) return;
+  if (!navYears.length) { list.innerHTML='<p style="font-size:13px;color:var(--muted)">No years added yet.</p>'; return; }
+  list.innerHTML=[...navYears].sort((a,b)=>b-a).map(y=>`<div class="nav-year-row"><span>${y}</span><button class="btn btn-danger btn-sm" onclick="removeNavYear(${y})">Remove</button></div>`).join('');
+}
+function addNavYear() {
+  const input=document.getElementById('s-nav-year-input'), val=parseInt(input.value);
+  if (!val||val<1900||val>2100) { toast('Enter a valid year'); return; }
+  const s=getSettings(); const navYears=s.navYears||[];
+  if (navYears.includes(val)) { toast('Year already in navigation'); return; }
+  navYears.push(val); s.navYears=navYears; localStorage.setItem('pf_settings',JSON.stringify(s));
+  input.value=''; renderNavYears(navYears); toast('Year '+val+' added to navigation');
+}
+function removeNavYear(y) {
+  const s=getSettings(); s.navYears=(s.navYears||[]).filter(yr=>yr!==y);
+  localStorage.setItem('pf_settings',JSON.stringify(s)); renderNavYears(s.navYears); toast('Year '+y+' removed');
 }
 
 function saveSettingsToStorage() {
@@ -1196,6 +1312,66 @@ function saveSettingsToStorage() {
   if (IS_ELECTRON) persistAll().catch(()=>{});
   return s;
 }
+function exportSettings() {
+  saveSettingsToStorage();
+  const s = getSettings();
+  const forExport = { ...s }; delete forExport.cvData;
+  const blob=new Blob([JSON.stringify(forExport,null,2)],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='site.json'; a.click();
+  toast('Downloaded site.json');
+}
+
+// ─────────────────────────────────────────────
+// EXPORT / DOWNLOAD
+// ─────────────────────────────────────────────
+function exportAllYears() {
+  if (!items.length) { toast('Nothing to export'); return; }
+  sortedYears().forEach(year => {
+    const yi=items.filter(i=>i.year==year&&!i.draft);
+    if (yi.length) downloadJSON(yi,`data/portfolio-${year}.json`);
+  });
+  toast('Downloaded year files');
+}
+function exportCurrentYear() {
+  const year=activeTab==='all'?parseInt(document.getElementById('year-select').value):activeTab;
+  const yi=items.filter(i=>i.year==year&&!i.draft);
+  if (!yi.length) { toast('No published works in '+year); return; }
+  downloadJSON(yi,`portfolio-${year}.json`);
+  toast('Downloaded portfolio-'+year+'.json');
+}
+function downloadJSON(data,filename) {
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=filename; a.click();
+}
+
+async function downloadEverything() {
+  if (!window.JSZip) {
+    const s=document.createElement('script'); s.src='https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+    document.head.appendChild(s); await new Promise(res=>s.onload=res);
+  }
+  const zip=new JSZip();
+  const dataFolder=zip.folder('data');
+  sortedYears().forEach(year => {
+    const yi=items.filter(i=>i.year==year&&!i.draft);
+    if (yi.length) dataFolder.file(`portfolio-${year}.json`,JSON.stringify(yi,null,2));
+  });
+  saveSettingsToStorage();
+  const s = getSettings();
+  // Strip cvData from site.json in zip (PDF is separate file)
+  const siteForExport = { ...s }; delete siteForExport.cvData;
+  zip.file('site.json', JSON.stringify(siteForExport, null, 2));
+  // Add CV PDF as separate file if present
+  if (s.cvData && s.cvFile) {
+    const pdfBytes = atob(s.cvData.split(',')[1]);
+    const arr = new Uint8Array(pdfBytes.length);
+    for (let i = 0; i < pdfBytes.length; i++) arr[i] = pdfBytes.charCodeAt(i);
+    zip.file(s.cvFile, arr);
+  }
+  const blob=await zip.generateAsync({type:'blob'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='portfolio-files.zip'; a.click();
+  toast('Downloaded portfolio-files.zip');
+}
+
 // ─────────────────────────────────────────────
 // BACKUP / RESTORE
 // ─────────────────────────────────────────────
@@ -1232,23 +1408,14 @@ async function restoreBackup(input) {
     const backup = JSON.parse(jsonText);
     if (!backup.items || !backup.settings) throw new Error('Invalid backup file');
     if (!confirm('This will replace ALL current data with the backup. Continue?')) return;
-    // Restore all state
     items = backup.items || [];
     years = backup.years || DEFAULT_YEARS;
-    // Write to localStorage so getSettings() picks it up immediately
-    localStorage.setItem('pf_items',    JSON.stringify(items));
-    localStorage.setItem('pf_years',    JSON.stringify(years));
+    localStorage.setItem('pf_items', JSON.stringify(items));
+    localStorage.setItem('pf_years', JSON.stringify(years));
     localStorage.setItem('pf_settings', JSON.stringify(backup.settings));
-    // In Electron, also persist to disk
     if (IS_ELECTRON) await persistAll();
     closeModal('backup-modal');
-    // Fully re-render everything
-    renderTabs();
-    renderList();
-    updateDraftBadge();
-    updateSeriesDatalist();
-    loadSettingsForm();   // reload all info fields
-    loadGitHubForm();     // reload GitHub fields
+    renderTabs(); renderList(); updateDraftBadge();
     toast('Backup restored');
   } catch(err) { toast('Invalid backup file'); }
 }
@@ -1256,6 +1423,36 @@ async function restoreBackup(input) {
 // ─────────────────────────────────────────────
 // PUBLISH HISTORY
 // ─────────────────────────────────────────────
+function addPublishHistory(label) {
+  const history=JSON.parse(localStorage.getItem('publish_history')||'[]');
+  history.unshift({label,time:new Date().toISOString()});
+  localStorage.setItem('publish_history',JSON.stringify(history.slice(0,5)));
+}
+function renderPublishHistory() {
+  const el=document.getElementById('publish-history');
+  if (!el) return;
+  const history=JSON.parse(localStorage.getItem('publish_history')||'[]');
+  if (!history.length) { el.innerHTML='<p style="font-size:13px;color:var(--muted);padding:12px 0">No publishes yet.</p>'; return; }
+  el.innerHTML=history.map(h=>`<div class="history-row"><span>${h.label}</span><span class="history-time">${new Date(h.time).toLocaleString()}</span></div>`).join('');
+}
+
+// ─────────────────────────────────────────────
+// AUTO-SYNC
+// ─────────────────────────────────────────────
+function loadAutoSyncState() {
+  // auto-sync-toggle synced above
+}
+function toggleAutoSync(val) {
+  autoSyncEnabled=val;
+  localStorage.setItem('auto_sync',val);
+  toast(val?'Auto-sync enabled':'Auto-sync disabled');
+}
+async function autoSync() {
+  const s=getGitHubSettings();
+  if (!s.token||!s.owner||!s.repo) return;
+  try { await _publishAll(true); } catch(e) { console.warn('Auto-sync failed:',e); }
+}
+
 // ─────────────────────────────────────────────
 // GITHUB
 // ─────────────────────────────────────────────
@@ -1301,7 +1498,7 @@ function setGhStatus(html,type) {
 }
 async function _publishAll(silent=false) {
   const s=getGitHubSettings();
-  if (!s.token||!s.owner||!s.repo) { if(!silent) { toast('Set up GitHub first — go to GitHub in the menu'); } return; }
+  if (!s.token||!s.owner||!s.repo) { if(!silent) { toast('Set up GitHub connection first'); goPanel('github', document.getElementById('ni-github')); } return; }
   if (!silent) { setGhStatus('Publishing…','info'); toast('Publishing to GitHub…'); }
   for (const year of sortedYears()) {
     const yi=items.filter(i=>i.year==year&&!i.draft);
@@ -1333,15 +1530,45 @@ async function _publishAll(silent=false) {
     if (!pdfRes.ok) console.warn('CV push failed — non-critical');
   }
 
+  addPublishHistory('Published everything');
   markSaved();
   if (!silent) {
+    setGhStatus('✓ Published. Site updates in ~30 seconds.','success');
     toast('✓ Published to GitHub');
     reloadPreview();
   }
+  renderPublishHistory();
 }
 async function publishAll() {
   try { await _publishAll(); } catch(e) { setGhStatus('✕ '+e.message,'error'); toast('Publish failed'); }
 }
+async function publishPortfolioOnly() {
+  const s=getGitHubSettings(); if (!s.token||!s.owner||!s.repo) { toast('Set up GitHub first'); return; }
+  toast('Publishing artworks…');
+  try {
+    for (const year of sortedYears()) {
+      const yi=items.filter(i=>i.year==year&&!i.draft);
+      if (!yi.length) continue;
+      const res=await pushFile(`data/portfolio-${year}.json`,JSON.stringify(yi,null,2),`Update portfolio ${year}`);
+      if (!res.ok) throw new Error(res.data.message);
+    }
+    addPublishHistory('Published artworks');
+    setGhStatus('✓ Artworks published.','success'); toast('✓ Artworks published'); renderPublishHistory();
+  } catch(e) { setGhStatus('✕ '+e.message,'error'); toast('Failed'); }
+}
+async function publishSettingsOnly() {
+  const s=getGitHubSettings(); if (!s.token||!s.owner||!s.repo) { toast('Set up GitHub first'); return; }
+  toast('Publishing settings…');
+  try {
+    saveSettingsToStorage();
+    const siteData = { ...getSettings() }; delete siteData.cvData;
+    const res=await pushFile('site.json',JSON.stringify(siteData,null,2),'Update site settings');
+    if (!res.ok) throw new Error(res.data.message);
+    addPublishHistory('Published settings');
+    setGhStatus('✓ Settings published.','success'); toast('✓ Settings published'); renderPublishHistory();
+  } catch(e) { setGhStatus('✕ '+e.message,'error'); toast('Failed'); }
+}
+
 // ─────────────────────────────────────────────
 // MODALS
 // ─────────────────────────────────────────────
@@ -1407,7 +1634,8 @@ function toast(msg) {
 }
 
 // Enter key support
-document.getElementById('new-year-input').addEventListener('keydown',e=>{if(e.key==='Enter')confirmNewYear();});
+
+
 
 // ─────────────────────────────────────────────
 // LIVE PREVIEW
@@ -1468,6 +1696,33 @@ function processEditFile(file) {
   reader.readAsDataURL(file);
 }
 
+
+// ── Panel system ──
+let currentPanel = 'add';
+const panelTitles = {add:'Add work',works:'Works',exh:'Exhibitions',identity:'Artist info',cvedu:'Education & CV',writing:'Writing',contact:'Contact',github:'GitHub'};
+
+function goPanel(id, btn) {
+  const cur = document.getElementById('p-' + currentPanel);
+  if (cur) { cur.classList.remove('in'); cur.classList.add('out-l'); setTimeout(()=>cur.classList.remove('out-l'), 350); }
+  const next = document.getElementById('p-' + id);
+  if (next) next.classList.add('in');
+  currentPanel = id;
+  document.getElementById('tb-title').textContent = panelTitles[id] || id;
+  document.querySelectorAll('.ni').forEach(n => n.classList.remove('on'));
+  if (btn) btn.classList.add('on');
+  if (id === 'works') { renderTabs(); renderList(); }
+  const settingsPanels = ['exh','identity','cvedu','writing','contact'];
+  if (settingsPanels.includes(id)) loadSettingsForm();
+  if (id === 'github') loadGitHubForm();
+}
+
+// Sync edit-draft toggle visual
+function syncEditDraftTog() {
+  const checked = document.getElementById('edit-draft').checked;
+  const tog = document.getElementById('edit-draft-tog');
+  if (tog) tog.classList.toggle('on', checked);
+}
+
 // ─────────────────────────────────────────────
 // INIT
 // ─────────────────────────────────────────────
@@ -1517,11 +1772,28 @@ async function initAsync() {
   renderList();
   updateDraftBadge();
   updateSeriesDatalist();
+  document.getElementById('auto-sync-toggle').checked = autoSyncEnabled;
+  if (autoSyncEnabled) document.getElementById('auto-sync-tog').classList.add('on');
   checkUnsaved();
+
 }
+
 
 // Boot
 initAsync();
+
+// ── Nav years (legacy compat) ──
+function renderNavYears(navYears) {}
+function addNavYear() {}
+function removeNavYear(y) {}
+// ── Series (legacy compat) ──
+function renderSeriesList(s) {}
+function renderPageManager() {}
+function updateSeriesMeta(name,key,val) {}
+function renderPressList(p) {}
+// Enter key support
+document.getElementById('new-year-input').addEventListener('keydown',e=>{if(e.key==='Enter')confirmNewYear();});
+
 </script>
 </body>
 </html>
