@@ -17,12 +17,23 @@ let mainWin = null;
 let previewWin = null;
 
 function createMain() {
+  const isMac = process.platform === 'darwin';
+  const isWin = process.platform === 'win32';
+
   mainWin = new BrowserWindow({
     width: 1280,
     height: 860,
     minWidth: 900,
     minHeight: 600,
-    titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'default',
+    titleBarStyle: isMac ? 'hiddenInset' : 'default',
+    // macOS: native frosted glass through the window
+    vibrancy: isMac ? 'under-window' : undefined,
+    visualEffectState: isMac ? 'active' : undefined,
+    // Windows 11: acrylic blur
+    backgroundMaterial: isWin ? 'acrylic' : undefined,
+    // Transparent frame so the OS blur shows through
+    transparent: isMac || isWin,
+    backgroundColor: isMac || isWin ? '#00000000' : '#f2f2f7',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
