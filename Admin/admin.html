@@ -1908,10 +1908,11 @@ async function ghGet(path) {
   if (!res.ok) return null;
   return res.json();
 }
-async function pushFile(path,content,msg) {
+async function pushFile(path,content,msg,isBase64=false) {
   const s=getGitHubSettings();
   const existing=await ghGet(path);
-  const body={message:msg,content:btoa(unescape(encodeURIComponent(content))),branch:s.branch};
+  const encoded=isBase64?content:btoa(unescape(encodeURIComponent(content)));
+  const body={message:msg,content:encoded,branch:s.branch};
   if (existing?.sha) body.sha=existing.sha;
   const res=await fetch(`https://api.github.com/repos/${s.owner}/${s.repo}/contents/${path}`,{method:'PUT',headers:{'Authorization':'token '+s.token,'Content-Type':'application/json','Accept':'application/vnd.github.v3+json'},body:JSON.stringify(body)});
   return {ok:res.ok,status:res.status,data:await res.json()};
@@ -1935,8 +1936,27 @@ async function _publishAll(silent=false) {
   const s=getGitHubSettings();
   if (!s.token||!s.owner||!s.repo) { if(!silent) { toast('Set up GitHub connection first'); goPanel('github', document.getElementById('ni-github')); } return; }
   if (!silent) { setGhStatus('Publishing…','info'); toast('Publishing to GitHub…'); }
+
+  // ── Push images and rewrite file refs ──
+  const publishedItems = await Promise.all(items.map(async item => {
+    if (!item.image || typeof item.image === 'string') return item;
+    if (item.image.type === 'base64') {
+      return { ...item, image: item.image.data };
+    }
+    if (item.image.type === 'file' && IS_ELECTRON) {
+      const filename = item.image.name;
+      const dataUrl = await window.electronAPI.readImage(filename);
+      if (!dataUrl) { console.warn('Could not read image:', filename); return item; }
+      const b64 = dataUrl.split(',')[1];
+      const imgRes = await pushFile(`images/${filename}`, b64, `Add image ${filename}`, true);
+      if (!imgRes.ok) console.warn('Image push failed:', filename, imgRes.status, imgRes.data?.message);
+      return { ...item, image: `images/${filename}` };
+    }
+    return item;
+  }));
+
   for (const year of sortedYears()) {
-    const yi=items.filter(i=>i.year==year&&!i.draft);
+    const yi=publishedItems.filter(i=>i.year==year&&!i.draft);
     if (!yi.length) continue;
     const res=await pushFile(`data/portfolio-${year}.json`,JSON.stringify(yi,null,2),`Update portfolio ${year}`);
     if (!res.ok) throw new Error(`Failed: data/portfolio-${year}.json — ${res.data.message}`);
