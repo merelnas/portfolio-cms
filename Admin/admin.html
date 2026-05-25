@@ -139,7 +139,7 @@ body{
   display:flex;align-items:center;
   padding:0 20px;gap:10px;flex-shrink:0;
 }
-.tb-title{font-size:17px;font-weight:800;color:var(--rose);flex:1;letter-spacing:-.01em;}
+.tb-title{display:none;}
 .tpill{
   height:32px;padding:0 16px;border-radius:var(--radius-full);
   border:1px solid var(--outline-var);
@@ -202,6 +202,21 @@ body{
   display:block;transition:transform .5s var(--spring);
 }
 .dz:hover .dz-icon{transform:translateY(-10px) scale(1.1);}
+/* ── YouTube-style sidebar collapse ── */
+.sb-toggle{display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:10px;background:none;border:none;cursor:pointer;color:var(--muted);margin-bottom:8px;flex-shrink:0;transition:background .15s,transform .3s var(--spring);font-family:inherit;}
+.sb-toggle:hover{background:rgba(130,79,98,.08);color:var(--rose);}
+.sb-toggle:active{transform:scale(.9);}
+.sb{transition:width .28s cubic-bezier(.4,0,.2,1);}
+.sb.collapsed{width:56px !important;padding:10px 4px;}
+.sb.collapsed .ni-label{display:none;}
+.sb.collapsed .nbadge{display:none;}
+.sb.collapsed .ni{justify-content:center;padding:9px;width:100%;}
+.sb.collapsed .ic{margin:0;}
+.sb.collapsed .sb-sec{display:none;}
+.sb.collapsed .pub-label{display:none;}
+.sb.collapsed .pub{justify-content:center;padding:10px;}
+.sb.collapsed .sb-toggle{margin:0 auto 8px;}
+.ni-label{white-space:nowrap;}
 .dz-title{font-size:22px;font-weight:700;color:var(--text);margin-bottom:8px;letter-spacing:-.01em;}
 .dz-sub{font-size:13px;color:var(--muted);line-height:1.6;}
 .dz-preview{position:absolute;inset:0;}
@@ -409,45 +424,42 @@ body{
 <div class="shell">
 
   <!-- Sidebar -->
-  <aside class="sb">
-    <button class="sb-sec-btn" onclick="toggleSbSec(this)"><span>Works</span><span class="sb-chev">›</span></button>
-    <div class="sb-group">
+  <aside class="sb" id="sidebar">
+    <button class="sb-toggle" id="sb-toggle" onclick="toggleSidebar()" title="Collapse sidebar">
+      <span class="mi">menu</span>
+    </button>
     <button class="ni on" id="ni-add" onclick="goPanel('add',this)">
-      <div class="ic" style="background:rgba(180,217,171,.35)"><span class="mi">add_photo_alternate</span></div>Add work
+      <div class="ic" style="background:rgba(180,217,171,.35)"><span class="mi">add_photo_alternate</span></div><span class="ni-label">Add work</span>
     </button>
     <button class="ni" id="ni-works" onclick="goPanel('works',this)">
-      <div class="ic" style="background:rgba(255,189,211,.35)"><span class="mi">gallery_thumbnail</span></div>Archive
+      <div class="ic" style="background:rgba(255,189,211,.35)"><span class="mi">gallery_thumbnail</span></div><span class="ni-label">Archive</span>
       <span class="nbadge" id="nav-draft-badge" style="display:none"></span>
     </button>
 
-    </div>
-    <button class="sb-sec-btn" onclick="toggleSbSec(this)"><span>Info</span><span class="sb-chev">›</span></button>
-    <div class="sb-group">
     <button class="ni" id="ni-exh" onclick="goPanel('exh',this)">
-      <div class="ic" style="background:rgba(253,218,227,.5)"><span class="mi">star</span></div>Exhibitions
+      <div class="ic" style="background:rgba(253,218,227,.5)"><span class="mi">star</span></div><span class="ni-label">Exhibitions</span>
     </button>
     <button class="ni" id="ni-identity" onclick="goPanel('identity',this)">
-      <div class="ic" style="background:rgba(255,189,211,.35)"><span class="mi">person</span></div>Artist info
+      <div class="ic" style="background:rgba(255,189,211,.35)"><span class="mi">person</span></div><span class="ni-label">Artist info</span>
     </button>
     <button class="ni" id="ni-cvedu" onclick="goPanel('cvedu',this)">
-      <div class="ic" style="background:rgba(172,208,163,.3)"><span class="mi">school</span></div>Education
+      <div class="ic" style="background:rgba(172,208,163,.3)"><span class="mi">school</span></div><span class="ni-label">Education</span>
     </button>
     <button class="ni" id="ni-writing" onclick="goPanel('writing',this)">
-      <div class="ic" style="background:rgba(180,217,171,.3)"><span class="mi">auto_stories</span></div>Writing
+      <div class="ic" style="background:rgba(180,217,171,.3)"><span class="mi">auto_stories</span></div><span class="ni-label">Writing</span>
     </button>
     <button class="ni" id="ni-contact" onclick="goPanel('contact',this)">
-      <div class="ic" style="background:rgba(253,218,227,.5)"><span class="mi">mail</span></div>Contact
+      <div class="ic" style="background:rgba(253,218,227,.5)"><span class="mi">mail</span></div><span class="ni-label">Contact</span>
     </button>
 
-    </div>
     <div class="nsp"></div>
 
     <button class="ni" id="ni-github" onclick="goPanel('github',this)">
-      <div class="ic" style="background:rgba(235,224,226,.6)"><span class="mi">settings</span></div>GitHub
+      <div class="ic" style="background:rgba(235,224,226,.6)"><span class="mi">settings</span></div><span class="ni-label">GitHub</span>
     </button>
     <button class="pub" onclick="publishAll()">
       <span class="mi mi-sm">publish</span>
-      Push to website
+      <span class="pub-label">Push to website</span>
       <span id="unsaved-dot" style="display:none;width:7px;height:7px;background:rgba(255,255,255,.7);border-radius:50%;margin-left:2px;"></span>
     </button>
   </aside>
@@ -456,7 +468,7 @@ body{
   <div class="mn">
     <!-- Top bar -->
     <header class="topbar">
-      <div class="tb-title" id="tb-title">Art Uploader</div>
+      <div class="tb-title" id="tb-title" style="display:none"></div>
       <button class="tpill" onclick="openModal('new-year-modal')"><span class="mi mi-sm">add</span> Year</button>
       <button class="tpill" onclick="openManageYearsModal()"><span class="mi mi-sm">tune</span></button>
     </header>
@@ -483,10 +495,6 @@ body{
           <!-- Right: metadata cards -->
           <div class="add-right">
             <div class="card">
-              <div class="card-head">
-                <span class="mi card-icon">edit_note</span>
-                <span class="card-title">Primary Information</span>
-              </div>
               <div class="fl" style="margin-bottom:12px">
                 <div class="flb">Work title</div>
                 <input class="fi" type="text" id="title-input">
@@ -498,10 +506,6 @@ body{
             </div>
 
             <div class="card">
-              <div class="card-head">
-                <span class="mi card-icon">category</span>
-                <span class="card-title">Categorization</span>
-              </div>
               <div class="fg">
                 <div class="fl">
                   <div class="flb">Material</div>
@@ -523,26 +527,10 @@ body{
               </div>
             </div>
 
-            <div class="card">
-              <div class="card-head">
-                <span class="mi card-icon">auto_awesome</span>
-                <span class="card-title">Exhibition Focus</span>
-              </div>
-              <div class="tr" onclick="this.querySelector('.tog').classList.toggle('on');document.getElementById('draft-toggle').checked=this.querySelector('.tog').classList.contains('on')">
-                <div>
-                  <div class="tl">Save as draft</div>
-                  <div class="ts">Hidden from website until published</div>
-                </div>
-                <div class="tog"></div>
-              </div>
-              <input type="checkbox" id="draft-toggle" style="display:none">
-              <div class="tr" style="margin-bottom:12px" onclick="this.querySelector('.tog').classList.toggle('on');document.getElementById('draft-toggle').checked=this.querySelector('.tog').classList.contains('on')">
-                <div><div class="tl">Save as draft</div><div class="ts">Hidden from website</div></div>
-                <div class="tog"></div>
-              </div>
+            <div class="card" style="padding:0;background:none;border:none;box-shadow:none">
               <input type="checkbox" id="draft-toggle" style="display:none">
               <button class="btn btn-rose btn-full" onclick="addItem()">
-                <span class="mi mi-sm">publish</span> Push to website
+                <span class="mi mi-sm">add</span> Add to portfolio
               </button>
             </div>
           </div>
@@ -591,6 +579,11 @@ body{
               <div class="flb">Venue / location</div>
               <input class="fi" type="text" id="s-exh-venue">
             </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+            <label class="tog" id="exh-upcoming-tog" onclick="this.classList.toggle('on')" title="Mark as upcoming" style="cursor:pointer"></label>
+            <input type="checkbox" id="s-exh-upcoming" style="display:none">
+            <span style="font-size:12px;font-weight:500;color:var(--muted)">Upcoming exhibition</span>
           </div>
           <button class="btn btn-rose" onclick="addExhibition()">
             <span class="mi mi-sm">add</span> Add exhibition
@@ -763,10 +756,6 @@ body{
       <div class="panel" id="p-contact">
         <div style="padding:20px">
           <div class="card">
-            <div class="card-head">
-              <span class="mi card-icon">mail</span>
-              <span class="card-title">Contact Information</span>
-            </div>
             <div class="fg">
               <div class="fl">
                 <div class="flb">Email</div>
@@ -1459,7 +1448,7 @@ function loadSettingsForm() {
   set('s-contact-text', s.contactText); set('s-representation', s.representation);
   set('s-representation-url', s.representationUrl); set('s-location', s.location);
   renderNavYears(s.navYears || []);
-  renderCvList('s-exh-list', s.exhibitions || [], 'exhibition');
+  renderExhibitions(s.exhibitions || []);
   renderCvList('s-edu-list', s.education   || [], 'education');
   renderPressList(s.press || []);
   renderTextsList(s.texts || []);
@@ -1590,13 +1579,41 @@ function removeWriting(i) {
   renderWritingList(s.writing); toast('Removed');
 }
 
+function renderExhibitions(exhibitions) {
+  const el = document.getElementById('s-exh-list');
+  if (!el) return;
+  if (!exhibitions || !exhibitions.length) {
+    el.innerHTML = '<p style="font-size:11px;color:var(--muted)">None added yet.</p>';
+    return;
+  }
+  // Sort: upcoming first, then by year descending
+  const sorted = [...exhibitions].sort((a, b) => {
+    if (a.upcoming && !b.upcoming) return -1;
+    if (!a.upcoming && b.upcoming) return 1;
+    return (b.year||0) - (a.year||0);
+  });
+  el.innerHTML = sorted.map((item, i) => {
+    const origIndex = exhibitions.indexOf(item);
+    return `<div class="cv-row" style="${item.upcoming ? 'border-color:rgba(130,79,98,.3);background:rgba(255,189,211,.08)' : ''}">
+      <span class="cv-year">${item.upcoming ? '<span style="font-size:9px;font-weight:700;color:var(--rose);text-transform:uppercase;letter-spacing:.05em">Soon</span>' : String(item.year||'')}</span>
+      <span class="cv-text">${esc(item.title)}${item.venue ? `<br><span class="cv-venue">${esc(item.venue)}</span>` : ''}</span>
+      <button class="btn btn-danger btn-sm" onclick="removeCvItem('exhibition',${origIndex})">✕</button>
+    </div>`;
+  }).join('');
+}
+
 function addExhibition() {
-  const year=document.getElementById('s-exh-year').value.trim(), title=document.getElementById('s-exh-title').value.trim(), venue=document.getElementById('s-exh-venue').value.trim();
+  const year=document.getElementById('s-exh-year').value.trim();
+  const title=document.getElementById('s-exh-title').value.trim();
+  const venue=document.getElementById('s-exh-venue').value.trim();
+  const upcoming=document.getElementById('exh-upcoming-tog').classList.contains('on');
   if (!title) { toast('Please enter a title'); return; }
-  const s=getSettings(); s.exhibitions=s.exhibitions||[]; s.exhibitions.push({year:year?parseInt(year):'',title,venue});
+  const s=getSettings(); s.exhibitions=s.exhibitions||[];
+  s.exhibitions.push({year:year?parseInt(year):'',title,venue,upcoming});
   localStorage.setItem('pf_settings',JSON.stringify(s));
   ['s-exh-year','s-exh-title','s-exh-venue'].forEach(id=>document.getElementById(id).value='');
-  renderCvList('s-exh-list',s.exhibitions,'exhibition'); toast('Exhibition added');
+  document.getElementById('exh-upcoming-tog').classList.remove('on');
+  renderExhibitions(s.exhibitions); toast('Exhibition added');
 }
 function addEducation() {
   const year=document.getElementById('s-edu-year').value.trim(), title=document.getElementById('s-edu-title').value.trim(), institution=document.getElementById('s-edu-institution').value.trim();
@@ -2321,17 +2338,24 @@ function renderPageManager() {}
 function updateSeriesMeta(name,key,val) {}
 function renderPressList(p) {}
 
-// ── Collapsible sidebar sections ──
-function toggleSbSec(btn) {
-  btn.classList.toggle('collapsed');
-  const group = btn.nextElementSibling;
-  if (group && group.classList.contains('sb-group')) {
-    group.style.maxHeight = btn.classList.contains('collapsed') ? '0' : group.scrollHeight + 200 + 'px';
-  }
+// ── YouTube-style sidebar collapse ──
+function toggleSidebar() {
+  const sb  = document.getElementById('sidebar');
+  const btn = document.getElementById('sb-toggle');
+  const collapsed = sb.classList.toggle('collapsed');
+  btn.querySelector('.mi').textContent = collapsed ? 'menu_open' : 'menu';
+  localStorage.setItem('sb_collapsed', collapsed ? '1' : '');
 }
-document.addEventListener('DOMContentLoaded', () => {
-  document.querySelectorAll('.sb-group').forEach(g => { g.style.maxHeight = g.scrollHeight + 200 + 'px'; });
-});
+(function() {
+  if (localStorage.getItem('sb_collapsed')) {
+    document.addEventListener('DOMContentLoaded', () => {
+      const sb = document.getElementById('sidebar');
+      const btn = document.getElementById('sb-toggle');
+      if (sb) sb.classList.add('collapsed');
+      if (btn) btn.querySelector('.mi').textContent = 'menu_open';
+    });
+  }
+})();
 
 // Enter key support
 document.getElementById('new-year-input').addEventListener('keydown',e=>{if(e.key==='Enter')confirmNewYear();});
