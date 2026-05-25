@@ -161,7 +161,7 @@ body{
   position:absolute;inset:0;overflow-y:auto;
   opacity:0;transform:translateX(20px) scale(.985);
   pointer-events:none;
-  transition:opacity .28s ease,transform .35s var(--spring-soft);
+  transition:opacity .18s ease,transform .22s var(--spring-soft);
 }
 .panel::-webkit-scrollbar{width:4px;}
 .panel::-webkit-scrollbar-thumb{background:rgba(130,79,98,.15);border-radius:2px;}
@@ -410,21 +410,19 @@ body{
 
   <!-- Sidebar -->
   <aside class="sb">
-    <div class="sb-brand">
-      <div class="sb-brand-title">Studio Portfolio</div>
-      <div class="sb-brand-sub">Management Console</div>
-    </div>
-
-    <div class="sb-sec">Works</div>
+    <button class="sb-sec-btn" onclick="toggleSbSec(this)"><span>Works</span><span class="sb-chev">›</span></button>
+    <div class="sb-group">
     <button class="ni on" id="ni-add" onclick="goPanel('add',this)">
-      <div class="ic" style="background:rgba(180,217,171,.35)"><span class="mi">add_photo_alternate</span></div>Uploads
+      <div class="ic" style="background:rgba(180,217,171,.35)"><span class="mi">add_photo_alternate</span></div>Add work
     </button>
     <button class="ni" id="ni-works" onclick="goPanel('works',this)">
-      <div class="ic" style="background:rgba(255,189,211,.35)"><span class="mi">gallery_thumbnail</span></div>Collections
+      <div class="ic" style="background:rgba(255,189,211,.35)"><span class="mi">gallery_thumbnail</span></div>Archive
       <span class="nbadge" id="nav-draft-badge" style="display:none"></span>
     </button>
 
-    <div class="sb-sec">Info</div>
+    </div>
+    <button class="sb-sec-btn" onclick="toggleSbSec(this)"><span>Info</span><span class="sb-chev">›</span></button>
+    <div class="sb-group">
     <button class="ni" id="ni-exh" onclick="goPanel('exh',this)">
       <div class="ic" style="background:rgba(253,218,227,.5)"><span class="mi">star</span></div>Exhibitions
     </button>
@@ -441,21 +439,15 @@ body{
       <div class="ic" style="background:rgba(253,218,227,.5)"><span class="mi">mail</span></div>Contact
     </button>
 
+    </div>
     <div class="nsp"></div>
 
     <button class="ni" id="ni-github" onclick="goPanel('github',this)">
       <div class="ic" style="background:rgba(235,224,226,.6)"><span class="mi">settings</span></div>GitHub
     </button>
-    <button class="ni" id="ni-backup" onclick="openModal('backup-modal')">
-      <div class="ic" style="background:rgba(235,224,226,.6)"><span class="mi">save</span></div>Backup
-    </button>
-    <button class="ni" id="preview-nav-btn" style="display:none" onclick="openPreviewWindow()">
-      <div class="ic" style="background:rgba(235,224,226,.6)"><span class="mi">open_in_new</span></div>Preview
-    </button>
-
     <button class="pub" onclick="publishAll()">
       <span class="mi mi-sm">publish</span>
-      Commit to Archive
+      Push to website
       <span id="unsaved-dot" style="display:none;width:7px;height:7px;background:rgba(255,255,255,.7);border-radius:50%;margin-left:2px;"></span>
     </button>
   </aside>
@@ -481,8 +473,8 @@ body{
               <input type="file" id="file-input" accept="image/*" onchange="handleFile(this)">
               <div class="dz-inner">
                 <span class="dz-icon mi">cloud_upload</span>
-                <div class="dz-title">Drop your masterpiece</div>
-                <div class="dz-sub">Drag & drop or click to browse<br>JPG, PNG, WebP — auto-resized to 1800px</div>
+                <div class="dz-title">Upload image</div>
+                <div class="dz-sub">Drag & drop or click — JPG, PNG, WebP</div>
               </div>
             </div>
             <img id="preview-thumb" alt="Preview">
@@ -544,8 +536,13 @@ body{
                 <div class="tog"></div>
               </div>
               <input type="checkbox" id="draft-toggle" style="display:none">
+              <div class="tr" style="margin-bottom:12px" onclick="this.querySelector('.tog').classList.toggle('on');document.getElementById('draft-toggle').checked=this.querySelector('.tog').classList.contains('on')">
+                <div><div class="tl">Save as draft</div><div class="ts">Hidden from website</div></div>
+                <div class="tog"></div>
+              </div>
+              <input type="checkbox" id="draft-toggle" style="display:none">
               <button class="btn btn-rose btn-full" onclick="addItem()">
-                <span class="mi mi-sm">publish</span> Commit to Archive
+                <span class="mi mi-sm">publish</span> Push to website
               </button>
             </div>
           </div>
@@ -634,6 +631,17 @@ body{
                 <div class="flb">Based in</div>
                 <input class="fi" type="text" id="s-location" onchange="saveSettingsToStorage()">
               </div>
+            </div>
+            <div class="fl" style="margin-bottom:14px">
+              <div class="flb">Artist portrait <span style="font-weight:400;opacity:.6">(shown on info page)</span></div>
+              <div id="portrait-preview-wrap" style="display:none;margin-bottom:8px">
+                <img id="portrait-preview" style="width:100%;max-height:200px;object-fit:cover;border-radius:11px;border:0.5px solid var(--outline-var)" alt="Portrait">
+              </div>
+              <div style="display:flex;gap:8px">
+                <button class="btn" style="flex:1" onclick="document.getElementById('portrait-input').click()"><span class="mi mi-sm">person</span> Upload portrait</button>
+                <button class="btn btn-danger btn-sm" id="portrait-remove-btn" style="display:none" onclick="removePortrait()">Remove</button>
+              </div>
+              <input type="file" id="portrait-input" accept="image/*" style="display:none" onchange="handlePortraitUpload(this)">
             </div>
             <div class="fl" style="margin-bottom:14px">
               <div class="flb">Bio / curatorial statement</div>
@@ -867,7 +875,7 @@ body{
         <input type="file" id="edit-file-input" accept="image/*" style="display:none" onchange="handleEditFile(this)">
         <div id="edit-image-hint" style="display:none;font-size:11px;color:#9a5e00;margin-top:6px">New image staged — click Save to apply</div>
       </div>
-      <button class="btn btn-rose btn-full" style="margin-top:14px" onclick="saveEdit()"><span class="mi mi-sm">save</span> Save changes</button>
+      <button class="btn btn-rose btn-full" style="margin-top:14px" onclick="saveEdit()"><span class="mi mi-sm">save</span> Save</button>
     </div>
   </div>
 </div>
@@ -1459,6 +1467,7 @@ function loadSettingsForm() {
   renderCvUploadStatus(s);
   renderSeriesList(s);
   renderPageManager();
+  loadPortraitPreview();
 }
 
 function renderCvList(containerId, items, type) {
@@ -1962,12 +1971,27 @@ async function _publishAll(silent=false) {
     if (!res.ok) throw new Error(`Failed: data/portfolio-${year}.json — ${res.data.message}`);
   }
   saveSettingsToStorage();
-  // Push site.json (without the raw cvData blob — too large, stored separately)
-  const siteData = { ...getSettings() };
+  // Fetch existing site.json from GitHub and merge — preserves data not in local admin
+  let existingSite = {};
+  try {
+    const existing = await ghGet('site.json');
+    if (existing && existing.content) {
+      existingSite = JSON.parse(atob(existing.content.replace(/\n/g,'')));
+    }
+  } catch(_) {}
+  const siteData = { ...existingSite, ...getSettings() };
   delete siteData.cvData;
-  // Always sync navYears from the actual years array so nav works on the website
   siteData.navYears = sortedYears();
   siteData.years    = sortedYears();
+  // Push portrait if present
+  const portraitData = siteData.portraitImage;
+  if (portraitData && portraitData.startsWith('data:')) {
+    const b64 = portraitData.split(',')[1];
+    const portraitRes = await pushFile('images/portrait.jpg', b64, 'Update artist portrait', true);
+    if (portraitRes.ok) siteData.portraitImage = 'images/portrait.jpg';
+    else console.warn('Portrait push failed');
+  }
+
   const siteRes = await pushFile('site.json', JSON.stringify(siteData, null, 2), 'Update site settings');
   if (!siteRes.ok) throw new Error('Failed: site.json — ' + siteRes.data.message);
 
@@ -2240,7 +2264,54 @@ async function initAsync() {
 // Boot
 initAsync();
 
-// ── Nav years (legacy compat) ──
+// ── Portrait upload ──
+function handlePortraitUpload(input) {
+  const file = input.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = new Image();
+    img.onload = () => {
+      const MAX = 1200; let w = img.width, h = img.height;
+      if (w > MAX || h > MAX) { const r = Math.min(MAX/w, MAX/h); w = Math.round(w*r); h = Math.round(h*r); }
+      const canvas = document.createElement('canvas'); canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      const data = canvas.toDataURL('image/jpeg', 0.88);
+      const s = getSettings(); s.portraitImage = data;
+      localStorage.setItem('pf_settings', JSON.stringify(s));
+      const prev = document.getElementById('portrait-preview');
+      const wrap = document.getElementById('portrait-preview-wrap');
+      const rm   = document.getElementById('portrait-remove-btn');
+      if (prev) prev.src = data;
+      if (wrap) wrap.style.display = '';
+      if (rm)   rm.style.display = '';
+      toast('Portrait uploaded');
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function removePortrait() {
+  const s = getSettings(); s.portraitImage = '';
+  localStorage.setItem('pf_settings', JSON.stringify(s));
+  const wrap = document.getElementById('portrait-preview-wrap');
+  const rm   = document.getElementById('portrait-remove-btn');
+  if (wrap) wrap.style.display = 'none';
+  if (rm)   rm.style.display   = 'none';
+  toast('Portrait removed');
+}
+
+function loadPortraitPreview() {
+  const s = getSettings();
+  if (s.portraitImage) {
+    const prev = document.getElementById('portrait-preview');
+    const wrap = document.getElementById('portrait-preview-wrap');
+    const rm   = document.getElementById('portrait-remove-btn');
+    if (prev) prev.src = s.portraitImage;
+    if (wrap) wrap.style.display = '';
+    if (rm)   rm.style.display   = '';
+  }
+}
 function renderNavYears(navYears) {}
 function addNavYear() {}
 function removeNavYear(y) {}
@@ -2249,6 +2320,19 @@ function renderSeriesList(s) {}
 function renderPageManager() {}
 function updateSeriesMeta(name,key,val) {}
 function renderPressList(p) {}
+
+// ── Collapsible sidebar sections ──
+function toggleSbSec(btn) {
+  btn.classList.toggle('collapsed');
+  const group = btn.nextElementSibling;
+  if (group && group.classList.contains('sb-group')) {
+    group.style.maxHeight = btn.classList.contains('collapsed') ? '0' : group.scrollHeight + 200 + 'px';
+  }
+}
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.sb-group').forEach(g => { g.style.maxHeight = g.scrollHeight + 200 + 'px'; });
+});
+
 // Enter key support
 document.getElementById('new-year-input').addEventListener('keydown',e=>{if(e.key==='Enter')confirmNewYear();});
 
