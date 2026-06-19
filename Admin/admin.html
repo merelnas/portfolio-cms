@@ -202,6 +202,31 @@ body{
   display:block;transition:transform .5s var(--spring);
 }
 .dz:hover .dz-icon{transform:translateY(-10px) scale(1.1);}
+/* ── Image strip (multi-image) ── */
+.image-strip{display:flex;flex-wrap:wrap;gap:8px;padding:12px;}
+.add-left .image-strip{padding:16px;align-content:flex-start;overflow-y:auto;max-height:calc(100vh - 200px);}
+.strip-thumb{position:relative;width:80px;height:80px;border-radius:10px;overflow:hidden;cursor:grab;border:2px solid transparent;background:var(--surface-var);flex-shrink:0;transition:transform .2s var(--spring),border-color .15s;}
+.strip-thumb:hover{transform:scale(1.05);}
+.strip-thumb:active{cursor:grabbing;}
+.strip-thumb.cover{border-color:var(--rose);}
+.strip-thumb img{width:100%;height:100%;object-fit:cover;display:block;}
+.strip-thumb .cover-tag{position:absolute;bottom:0;left:0;right:0;background:var(--rose);color:#fff;font-size:8px;font-weight:700;text-align:center;padding:1px;text-transform:uppercase;letter-spacing:.04em;}
+.strip-thumb .strip-del{position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;border:none;cursor:pointer;font-size:11px;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .15s;}
+.strip-thumb:hover .strip-del{opacity:1;}
+.strip-thumb.dragging{opacity:.4;}
+
+/* ── Sync status dot ── */
+.sync-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;display:inline-block;}
+.sync-synced{background:var(--green);}
+.sync-edited{background:var(--amber);}
+.sync-new{background:var(--rose);}
+
+/* ── Publish progress ── */
+#publish-progress{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(28,28,30,.92);backdrop-filter:blur(20px);color:#fff;padding:10px 18px;border-radius:var(--radius-full);font-size:12px;font-weight:600;z-index:600;display:none;align-items:center;gap:10px;border:1px solid rgba(255,255,255,.15);white-space:nowrap;}
+#publish-progress.show{display:flex;}
+.pp-spinner{width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:ppspin .7s linear infinite;}
+@keyframes ppspin{to{transform:rotate(360deg);}}
+
 /* ── YouTube-style sidebar collapse ── */
 .sb-toggle{display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:10px;background:none;border:none;cursor:pointer;color:var(--muted);margin-bottom:8px;flex-shrink:0;transition:background .15s,transform .3s var(--spring);font-family:inherit;}
 .sb-toggle:hover{background:rgba(130,79,98,.08);color:var(--rose);}
@@ -479,17 +504,17 @@ body{
       <!-- ADD WORK — split layout -->
       <div class="panel in" id="p-add">
         <div class="add-split">
-          <!-- Left: upload zone -->
+          <!-- Left: upload zone + image strip -->
           <div class="add-left">
             <div class="dz" id="upload-zone">
-              <input type="file" id="file-input" accept="image/*" onchange="handleFile(this)">
+              <input type="file" id="file-input" accept="image/*" multiple onchange="handleFiles(this)">
               <div class="dz-inner">
                 <span class="dz-icon mi">cloud_upload</span>
-                <div class="dz-title">Upload image</div>
-                <div class="dz-sub">Drag & drop or click — JPG, PNG, WebP</div>
+                <div class="dz-title">Upload images</div>
+                <div class="dz-sub">Drag & drop or click — first image is the cover<br>JPG, PNG, WebP — multiple allowed</div>
               </div>
             </div>
-            <img id="preview-thumb" alt="Preview">
+            <div id="add-image-strip" class="image-strip"></div>
           </div>
 
           <!-- Right: metadata cards -->
@@ -514,11 +539,6 @@ body{
                 <div class="fl">
                   <div class="flb">Dimensions</div>
                   <input class="fi" type="text" id="dimensions-input">
-                </div>
-                <div class="fl fc">
-                  <div class="flb">Series / collection</div>
-                  <input class="fi" type="text" id="series-input" list="series-datalist" autocomplete="off">
-                  <datalist id="series-datalist"></datalist>
                 </div>
                 <div class="fl fc">
                   <div class="flb">Year</div>
@@ -849,7 +869,6 @@ body{
         <div class="fl fc"><div class="flb">Description</div><textarea class="fa" id="edit-desc"></textarea></div>
         <div class="fl"><div class="flb">Material</div><input class="fi" type="text" id="edit-material"></div>
         <div class="fl"><div class="flb">Dimensions</div><input class="fi" type="text" id="edit-dimensions"></div>
-        <div class="fl fc"><div class="flb">Series</div><input class="fi" type="text" id="edit-series"></div>
         <div class="fl fc"><div class="flb">Year</div><select class="fi fsel" id="edit-year"></select></div>
       </div>
       <div class="tr" style="margin-bottom:14px" onclick="document.getElementById('edit-draft').checked=!document.getElementById('edit-draft').checked;this.querySelector('.tog').classList.toggle('on',document.getElementById('edit-draft').checked)">
@@ -858,11 +877,10 @@ body{
       </div>
       <input type="checkbox" id="edit-draft" style="display:none">
       <div style="border-top:1px solid rgba(212,194,198,.25);padding-top:14px;margin-top:4px">
-        <div class="flb" style="margin-bottom:8px">Replace image</div>
-        <img id="edit-image-preview" style="display:none;width:100%;max-height:140px;object-fit:cover;border-radius:var(--radius);margin-bottom:10px" alt="">
-        <button class="btn btn-full" id="edit-replace-btn" onclick="document.getElementById('edit-file-input').click()"><span class="mi mi-sm">upload</span> Choose new image</button>
-        <input type="file" id="edit-file-input" accept="image/*" style="display:none" onchange="handleEditFile(this)">
-        <div id="edit-image-hint" style="display:none;font-size:11px;color:#9a5e00;margin-top:6px">New image staged — click Save to apply</div>
+        <div class="flb" style="margin-bottom:8px">Images <span style="font-weight:400;opacity:.6">— drag to reorder, first is the cover</span></div>
+        <div id="edit-image-strip" class="image-strip"></div>
+        <button class="btn btn-full" id="edit-replace-btn" style="margin-top:8px" onclick="document.getElementById('edit-file-input').click()"><span class="mi mi-sm">add_photo_alternate</span> Add images</button>
+        <input type="file" id="edit-file-input" accept="image/*" multiple style="display:none" onchange="handleEditFiles(this)">
       </div>
       <button class="btn btn-rose btn-full" style="margin-top:14px" onclick="saveEdit()"><span class="mi mi-sm">save</span> Save</button>
     </div>
@@ -906,6 +924,7 @@ body{
 
 <div id="undo-bar"><span id="undo-msg"></span><button onclick="undoDelete()">Undo</button></div>
 <div id="toast"></div>
+<div id="publish-progress"><span class="pp-spinner"></span><span id="pp-text">Publishing…</span></div>
 
 <script>
 
@@ -916,50 +935,32 @@ const IS_ELECTRON = !!(window.electronAPI);
 
 // Unified storage: Electron uses IPC to main process; browser uses localStorage
 const Store = {
-  // Data is loaded async in initAsync(); these are the live in-memory copies
   _data: null,
-
   async load() {
-    if (IS_ELECTRON) {
-      this._data = await window.electronAPI.loadData();
-      return this._data;
-    }
-    return null; // browser path loads directly from localStorage below
+    if (IS_ELECTRON) { this._data = await window.electronAPI.loadData(); return this._data; }
+    return null;
   },
-
   async save(data) {
-    if (IS_ELECTRON) {
-      await window.electronAPI.saveData(data);
-    }
-    // Browser path: individual keys saved separately (existing behaviour preserved)
+    if (IS_ELECTRON) await window.electronAPI.saveData(data);
   },
-
-  // Save an image; returns a key to store in item.image
-  // Electron: saves to filesystem, returns filename
-  // Browser:  returns the base64 data-URL as-is
   async saveImage(filename, base64DataUrl) {
     if (IS_ELECTRON) {
-      // Strip the data:image/xxx;base64, prefix
       const b64 = base64DataUrl.split(',')[1];
       const name = await window.electronAPI.saveImage(filename, b64);
-      return { type: 'file', name }; // { type:'file', name:'1234567890.jpg' }
+      return { type: 'file', name };
     }
     return { type: 'base64', data: base64DataUrl };
   },
-
-  // Resolve an item.image to a displayable src
   async resolveImage(imageObj) {
     if (!imageObj) return null;
-    // Legacy: plain string means base64 data-URL
     if (typeof imageObj === 'string') return imageObj;
     if (imageObj.type === 'base64') return imageObj.data;
     if (imageObj.type === 'file') {
       if (IS_ELECTRON) return await window.electronAPI.readImage(imageObj.name);
-      return null; // file refs can't be shown in plain browser
+      return null;
     }
     return null;
   },
-
   async deleteImage(imageObj) {
     if (IS_ELECTRON && imageObj && imageObj.type === 'file') {
       await window.electronAPI.deleteImage(imageObj.name);
@@ -968,13 +969,40 @@ const Store = {
 };
 
 // ─────────────────────────────────────────────
+// SLUG + HASH HELPERS
+// ─────────────────────────────────────────────
+function slugify(str) {
+  return String(str || 'untitled')
+    .toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')  // strip accents
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 80) || 'untitled';
+}
+
+// Ensure a unique slug across all items (except the item itself)
+function uniqueSlug(base, selfId) {
+  let slug = base, n = 2;
+  while (items.some(i => i.slug === slug && i.id !== selfId)) {
+    slug = base + '-' + n; n++;
+  }
+  return slug;
+}
+
+// Lightweight content hash of a work (to detect changes)
+function workHash(item) {
+  const imgKeys = (item.images || []).map(im => typeof im === 'string' ? im : (im.name || im.data || '')).join('|');
+  return [item.title, item.description, item.material, item.dimensions, item.year, item.draft, imgKeys].join('~~');
+}
+
+// ─────────────────────────────────────────────
 // STATE
 // ─────────────────────────────────────────────
 const DEFAULT_YEARS = [2026, 2025, 2024, 2023, 2022, 2020];
 let items       = [];
 let years       = [];
-let currentImageData = null;  // base64 data-URL of pending image
-let currentImageFile = null;  // original File object
+let pendingImages = [];   // array of {data, file} for the add-work form
+let editImages    = [];   // array of image objects being edited
 let editingIndex     = null;
 let activeTab        = 'all';
 let deletedItem      = null;
@@ -999,63 +1027,81 @@ function showSection(id, btn) {
 
 
 // ─────────────────────────────────────────────
-// UPLOAD + IMAGE RESIZE
+// UPLOAD + IMAGE RESIZE (multi-image)
 // ─────────────────────────────────────────────
 const zone = document.getElementById('upload-zone');
 zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag'); });
 zone.addEventListener('dragleave', () => zone.classList.remove('drag'));
 zone.addEventListener('drop', e => {
   e.preventDefault(); zone.classList.remove('drag');
-  const f = e.dataTransfer.files[0];
-  if (f && f.type.startsWith('image/')) processFile(f);
+  const files = [...e.dataTransfer.files].filter(f => f.type.startsWith('image/'));
+  files.forEach(f => processFileToPending(f));
 });
-function handleFile(input) { if (input.files[0]) processFile(input.files[0]); }
+function handleFiles(input) { [...input.files].forEach(f => processFileToPending(f)); input.value=''; }
 
-// In Electron: "Pick image" button triggers native file dialog
 async function pickImageElectron() {
   const result = await window.electronAPI.pickImage();
   if (!result) return;
-  // Convert the returned base64 to a Blob/File-like object and process
   const mime = result.filename.match(/\.png$/i) ? 'image/png' :
                result.filename.match(/\.webp$/i) ? 'image/webp' : 'image/jpeg';
   const byteArr = Uint8Array.from(atob(result.base64), c => c.charCodeAt(0));
   const blob = new Blob([byteArr], { type: mime });
-  const file = new File([blob], result.filename, { type: mime });
-  processFile(file);
+  processFileToPending(new File([blob], result.filename, { type: mime }));
 }
 
-function processFile(file) {
-  currentImageFile = file;
+function resizeImage(file, cb) {
   const reader = new FileReader();
   reader.onload = e => {
     const img = new Image();
     img.onload = () => {
       const MAX = 1800;
       let w = img.width, h = img.height;
-      if (w > MAX || h > MAX) {
-        const ratio = Math.min(MAX/w, MAX/h);
-        w = Math.round(w * ratio); h = Math.round(h * ratio);
-      }
+      if (w > MAX || h > MAX) { const r = Math.min(MAX/w, MAX/h); w = Math.round(w*r); h = Math.round(h*r); }
       const canvas = document.createElement('canvas');
       canvas.width = w; canvas.height = h;
       canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-      const fname = file.name + '_' + file.size;
-      if (items.some(i => {
-        const img = i.image;
-        return (typeof img === 'string' ? img : img?._src) === fname;
-      })) {
-        toast('This image looks like a duplicate');
-      }
-      currentImageData = canvas.toDataURL('image/jpeg', 0.88);
-      const thumb = document.getElementById('preview-thumb');
-      thumb.src = currentImageData; thumb.style.display = 'block';
-      document.getElementById('upload-zone').style.display = 'none';
-      const kb = Math.round(currentImageData.length * 0.75 / 1024);
-      toast(`Image loaded (${w}×${h}px, ~${kb}KB)`);
+      cb(canvas.toDataURL('image/jpeg', 0.88), w, h);
     };
     img.src = e.target.result;
   };
   reader.readAsDataURL(file);
+}
+
+function processFileToPending(file) {
+  resizeImage(file, (data) => {
+    pendingImages.push({ data, file });
+    renderAddStrip();
+  });
+}
+
+function renderAddStrip() {
+  const strip = document.getElementById('add-image-strip');
+  if (!strip) return;
+  if (!pendingImages.length) { strip.innerHTML = ''; document.getElementById('upload-zone').style.display=''; return; }
+  document.getElementById('upload-zone').style.display = pendingImages.length ? 'none' : '';
+  strip.innerHTML = pendingImages.map((im, i) => `
+    <div class="strip-thumb ${i===0?'cover':''}" draggable="true"
+         ondragstart="stripDrag('add',${i},event)" ondragover="event.preventDefault()" ondrop="stripDrop('add',${i},event)">
+      <img src="${im.data}" alt="">
+      ${i===0?'<div class="cover-tag">Cover</div>':''}
+      <button class="strip-del" onclick="removePending(${i})">✕</button>
+    </div>`).join('') +
+    `<div class="strip-thumb" style="border:1.5px dashed var(--outline-var);display:flex;align-items:center;justify-content:center;cursor:pointer" onclick="document.getElementById('file-input').click()"><span class="mi" style="color:var(--muted)">add</span></div>`;
+}
+
+function removePending(i) { pendingImages.splice(i,1); renderAddStrip(); }
+
+// Drag reorder within a strip
+let stripDragCtx = null;
+function stripDrag(which, i, e) { stripDragCtx = {which, i}; e.currentTarget.classList.add('dragging'); }
+function stripDrop(which, target, e) {
+  e.preventDefault();
+  if (!stripDragCtx || stripDragCtx.which !== which) return;
+  const arr = which === 'add' ? pendingImages : editImages;
+  const moved = arr.splice(stripDragCtx.i, 1)[0];
+  arr.splice(target, 0, moved);
+  stripDragCtx = null;
+  which === 'add' ? renderAddStrip() : renderEditStrip();
 }
 
 // ─────────────────────────────────────────────
@@ -1066,20 +1112,23 @@ async function addItem() {
   const desc       = document.getElementById('desc-input').value.trim();
   const material   = document.getElementById('material-input').value.trim();
   const dimensions = document.getElementById('dimensions-input').value.trim();
-  const series     = document.getElementById('series-input').value.trim();
   const year       = parseInt(document.getElementById('year-select').value);
   const draft      = document.getElementById('draft-toggle').checked;
   if (!title) { toast('Please enter a title'); return; }
-  if (!currentImageData) { toast('Please upload an image'); return; }
+  if (!pendingImages.length) { toast('Please upload at least one image'); return; }
 
-  // Save image to filesystem (Electron) or keep base64 (browser)
-  const imageObj = await Store.saveImage(
-    currentImageFile ? currentImageFile.name : 'image.jpg',
-    currentImageData
-  );
+  // Save all images
+  const imageObjs = [];
+  for (const im of pendingImages) {
+    imageObjs.push(await Store.saveImage(im.file ? im.file.name : 'image.jpg', im.data));
+  }
 
-  const item = { id: Date.now(), image: imageObj, title, description: desc, material, dimensions, series, year, draft };
+  const id = Date.now();
+  const slug = uniqueSlug(slugify(title), id);
+  const item = { id, slug, images: imageObjs, title, description: desc, material, dimensions, year, draft, order: 0 };
   items.unshift(item);
+  // bump order values
+  items.forEach((it, idx) => it.order = idx);
   await persistAll();
   renderTabs(); renderList(); resetForm();
   updateDraftBadge();
@@ -1088,62 +1137,99 @@ async function addItem() {
 }
 
 function resetForm() {
-  currentImageData = null;
-  currentImageFile = null;
-  ['title-input','desc-input','material-input','dimensions-input','series-input'].forEach(id => document.getElementById(id).value = '');
+  pendingImages = [];
+  ['title-input','desc-input','material-input','dimensions-input'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('draft-toggle').checked = false;
   document.getElementById('file-input').value = '';
-  document.getElementById('preview-thumb').style.display = 'none';
+  renderAddStrip();
   document.getElementById('upload-zone').style.display = '';
 }
 
 function openEdit(i) {
   editingIndex = i;
-  currentEditImageData = null;
-  currentEditImageFile = null;
   const item = items[i];
+  // Normalise: legacy single image → images[]
+  editImages = normaliseImages(item).slice();
   document.getElementById('edit-title').value      = item.title || '';
   document.getElementById('edit-desc').value       = item.description || '';
   document.getElementById('edit-material').value   = item.material || '';
   document.getElementById('edit-dimensions').value = item.dimensions || '';
-  document.getElementById('edit-series').value     = item.series || '';
   document.getElementById('edit-draft').checked    = item.draft || false;
-  // Reset staged image UI
-  const prev = document.getElementById('edit-image-preview');
-  const hint = document.getElementById('edit-image-hint');
-  if (prev) { prev.src = ''; prev.style.display = 'none'; }
-  if (hint) hint.style.display = 'none';
-  // In Electron: wire replace button to native picker
+  document.getElementById('edit-draft-tog').classList.toggle('on', !!item.draft);
   const replaceBtn = document.getElementById('edit-replace-btn');
-  if (replaceBtn && IS_ELECTRON) {
-    replaceBtn.onclick = () => pickEditImageElectron();
-  }
+  if (replaceBtn && IS_ELECTRON) replaceBtn.onclick = () => pickEditImageElectron();
   renderTabs();
   document.getElementById('edit-year').value = item.year;
+  renderEditStrip();
   openModal('edit-modal');
+}
+
+// Convert any item to a clean images[] array of image objects
+function normaliseImages(item) {
+  if (item.images && Array.isArray(item.images)) return item.images;
+  if (item.image) return [item.image];
+  return [];
+}
+
+async function renderEditStrip() {
+  const strip = document.getElementById('edit-image-strip');
+  if (!strip) return;
+  // Resolve each image to a displayable src
+  const srcs = await Promise.all(editImages.map(im => Store.resolveImage(im)));
+  strip.innerHTML = editImages.map((im, i) => `
+    <div class="strip-thumb ${i===0?'cover':''}" draggable="true"
+         ondragstart="stripDrag('edit',${i},event)" ondragover="event.preventDefault()" ondrop="stripDrop('edit',${i},event)">
+      <img src="${srcs[i]||''}" alt="">
+      ${i===0?'<div class="cover-tag">Cover</div>':''}
+      <button class="strip-del" onclick="removeEditImage(${i})">✕</button>
+    </div>`).join('');
+}
+
+function removeEditImage(i) { editImages.splice(i,1); renderEditStrip(); }
+
+function handleEditFiles(input) {
+  [...input.files].forEach(f => {
+    resizeImage(f, async (data) => {
+      const obj = await Store.saveImage(f.name, data);
+      editImages.push(obj);
+      renderEditStrip();
+    });
+  });
+  input.value='';
+}
+
+async function pickEditImageElectron() {
+  const result = await window.electronAPI.pickImage();
+  if (!result) return;
+  const mime = result.filename.match(/\.png$/i)?'image/png':result.filename.match(/\.webp$/i)?'image/webp':'image/jpeg';
+  const byteArr = Uint8Array.from(atob(result.base64), c => c.charCodeAt(0));
+  const blob = new Blob([byteArr], {type:mime});
+  resizeImage(new File([blob], result.filename, {type:mime}), async (data) => {
+    const obj = await Store.saveImage(result.filename, data);
+    editImages.push(obj);
+    renderEditStrip();
+  });
 }
 
 async function saveEdit() {
   const t = document.getElementById('edit-title').value.trim();
   if (!t) { toast('Title cannot be empty'); return; }
-  items[editingIndex].title       = t;
-  items[editingIndex].description = document.getElementById('edit-desc').value.trim();
-  items[editingIndex].material    = document.getElementById('edit-material').value.trim();
-  items[editingIndex].dimensions  = document.getElementById('edit-dimensions').value.trim();
-  items[editingIndex].series      = document.getElementById('edit-series').value.trim();
-  items[editingIndex].year        = parseInt(document.getElementById('edit-year').value);
-  items[editingIndex].draft       = document.getElementById('edit-draft').checked;
-  // If a new image was staged in the edit modal, save it and replace
-  if (currentEditImageData) {
-    const oldImage = items[editingIndex].image;
-    await Store.deleteImage(oldImage);
-    items[editingIndex].image = await Store.saveImage(
-      currentEditImageFile ? currentEditImageFile.name : 'image.jpg',
-      currentEditImageData
-    );
-    currentEditImageData = null;
-    currentEditImageFile = null;
+  if (!editImages.length) { toast('A work needs at least one image'); return; }
+  const item = items[editingIndex];
+  // If title changed, update slug (track old slug for cleanup on publish)
+  const newSlug = uniqueSlug(slugify(t), item.id);
+  if (item.slug && item.slug !== newSlug) {
+    item._oldSlug = item.slug; // publish will delete the old file
   }
+  item.slug        = newSlug;
+  item.title       = t;
+  item.description = document.getElementById('edit-desc').value.trim();
+  item.material    = document.getElementById('edit-material').value.trim();
+  item.dimensions  = document.getElementById('edit-dimensions').value.trim();
+  item.year        = parseInt(document.getElementById('edit-year').value);
+  item.draft       = document.getElementById('edit-draft').checked;
+  item.images      = editImages.slice();
+  delete item.image; // remove legacy single-image field
   await persistAll();
   renderTabs(); renderList(); closeModal('edit-modal');
   updateDraftBadge();
@@ -1214,7 +1300,6 @@ function renderList() {
   if (search) filtered = filtered.filter(i =>
     (i.title||'').toLowerCase().includes(search) ||
     (i.material||'').toLowerCase().includes(search) ||
-    (i.series||'').toLowerCase().includes(search) ||
     (i.description||'').toLowerCase().includes(search)
   );
 
@@ -1226,18 +1311,26 @@ function renderList() {
     return;
   }
 
-  // Render with placeholder thumbs first, then fill in images async
+  const published = JSON.parse(localStorage.getItem('published_hashes') || '{}');
+
   list.innerHTML = filtered.map(item => {
     const ri = items.indexOf(item);
+    const imgs = normaliseImages(item);
+    const count = imgs.length;
+    // sync status
+    let syncClass = 'sync-new', syncTitle = 'Not published yet';
+    if (published[item.slug]) {
+      if (published[item.slug] === workHash(item)) { syncClass = 'sync-synced'; syncTitle = 'Published & up to date'; }
+      else { syncClass = 'sync-edited'; syncTitle = 'Edited since last publish'; }
+    }
     return `<div class="item-row" draggable="true" data-index="${ri}" ondragstart="dragStart(event,${ri})" ondragover="dragOver(event)" ondrop="dragDrop(event,${ri})" ondragleave="dragLeave(event)">
       <div class="item-thumb-placeholder" id="thumb-${ri}">⏳</div>
       <div style="min-width:0">
-        <div class="item-name">${esc(item.title)}</div>
-        <div class="item-meta">${[item.material, item.dimensions].filter(Boolean).join(' · ') || '—'}</div>
+        <div class="item-name"><span class="sync-dot ${syncClass}" title="${syncTitle}" style="margin-right:6px"></span>${esc(item.title)}</div>
+        <div class="item-meta">${[item.material, item.dimensions].filter(Boolean).join(' · ') || '—'}${count>1?` · ${count} images`:''}</div>
         <div class="item-badges">
           ${activeTab==='all'?`<span class="badge badge-year">${item.year}</span>`:''}
           ${item.draft?`<span class="badge badge-draft">Draft</span>`:''}
-          ${item.series?`<span class="badge badge-series">${esc(item.series)}</span>`:''}
         </div>
       </div>
       <div class="item-actions">
@@ -1247,12 +1340,13 @@ function renderList() {
     </div>`;
   }).join('');
 
-  // Fill in thumbs asynchronously
+  // Fill thumbs async (use first image as cover)
   filtered.forEach(async item => {
     const ri = items.indexOf(item);
     const el = document.getElementById(`thumb-${ri}`);
     if (!el) return;
-    const src = await Store.resolveImage(item.image);
+    const imgs = normaliseImages(item);
+    const src = imgs.length ? await Store.resolveImage(imgs[0]) : null;
     if (src) {
       el.outerHTML = `<img class="item-thumb" src="${src}" alt="${esc(item.title)}" style="width:72px;height:54px;object-fit:cover;border-radius:6px;border:1px solid var(--border)">`;
     } else {
@@ -1273,6 +1367,7 @@ async function dragDrop(e, targetIndex) {
   if (dragSrcIndex === null || dragSrcIndex === targetIndex) return;
   const moved = items.splice(dragSrcIndex, 1)[0];
   items.splice(targetIndex, 0, moved);
+  items.forEach((it, idx) => it.order = idx);
   dragSrcIndex = null;
   await persistAll(); renderList();
 }
@@ -1930,18 +2025,41 @@ function loadGitHubForm() {
 }
 async function ghGet(path) {
   const s=getGitHubSettings();
-  const res=await fetch(`https://api.github.com/repos/${s.owner}/${s.repo}/contents/${path}`,{headers:{'Authorization':'token '+s.token,'Accept':'application/vnd.github.v3+json'}});
+  const res=await fetch(`https://api.github.com/repos/${s.owner}/${s.repo}/contents/${encodeURIComponent(path).replace(/%2F/g,'/')}?ref=${s.branch}`,{headers:{'Authorization':'token '+s.token,'Accept':'application/vnd.github.v3+json'}});
   if (!res.ok) return null;
   return res.json();
 }
-async function pushFile(path,content,msg,isBase64=false) {
+// Push with automatic retry on SHA conflict (409) and transient errors
+async function pushFile(path, content, msg, isBase64=false, attempt=0) {
   const s=getGitHubSettings();
-  const existing=await ghGet(path);
-  const encoded=isBase64?content:btoa(unescape(encodeURIComponent(content)));
-  const body={message:msg,content:encoded,branch:s.branch};
-  if (existing?.sha) body.sha=existing.sha;
-  const res=await fetch(`https://api.github.com/repos/${s.owner}/${s.repo}/contents/${path}`,{method:'PUT',headers:{'Authorization':'token '+s.token,'Content-Type':'application/json','Accept':'application/vnd.github.v3+json'},body:JSON.stringify(body)});
-  return {ok:res.ok,status:res.status,data:await res.json()};
+  const encoded = isBase64 ? content : btoa(unescape(encodeURIComponent(content)));
+  const existing = await ghGet(path);
+  const body = { message: msg, content: encoded, branch: s.branch };
+  if (existing?.sha) body.sha = existing.sha;
+  const res = await fetch(`https://api.github.com/repos/${s.owner}/${s.repo}/contents/${encodeURIComponent(path).replace(/%2F/g,'/')}`, {
+    method:'PUT',
+    headers:{'Authorization':'token '+s.token,'Content-Type':'application/json','Accept':'application/vnd.github.v3+json'},
+    body:JSON.stringify(body)
+  });
+  const data = await res.json();
+  // Retry on conflict / rate-limit / server errors
+  if (!res.ok && (res.status===409 || res.status===422 || res.status===500 || res.status===502 || res.status===503) && attempt < 3) {
+    await new Promise(r => setTimeout(r, 600 * (attempt+1)));
+    return pushFile(path, content, msg, isBase64, attempt+1);
+  }
+  return {ok:res.ok, status:res.status, data};
+}
+// Delete a file from GitHub (for orphan cleanup)
+async function ghDelete(path, msg) {
+  const existing = await ghGet(path);
+  if (!existing?.sha) return { ok:true, skipped:true };
+  const s=getGitHubSettings();
+  const res = await fetch(`https://api.github.com/repos/${s.owner}/${s.repo}/contents/${encodeURIComponent(path).replace(/%2F/g,'/')}`, {
+    method:'DELETE',
+    headers:{'Authorization':'token '+s.token,'Content-Type':'application/json','Accept':'application/vnd.github.v3+json'},
+    body:JSON.stringify({ message: msg, sha: existing.sha, branch: s.branch })
+  });
+  return { ok:res.ok, status:res.status };
 }
 async function testGitHubConnection() {
   const s=getGitHubSettings();
@@ -1958,114 +2076,167 @@ async function testGitHubConnection() {
 function setGhStatus(html,type) {
   ['gh-status','gh-status-publish'].forEach(id=>{ const el=document.getElementById(id); if(!el)return; el.style.color={info:'var(--muted)',success:'var(--green)',error:'var(--red)'}[type]||'var(--muted)'; el.innerHTML=html; });
 }
+function showProgress(text) {
+  const p = document.getElementById('publish-progress');
+  const t = document.getElementById('pp-text');
+  if (t) t.textContent = text;
+  if (p) p.classList.add('show');
+}
+function hideProgress() {
+  const p = document.getElementById('publish-progress');
+  if (p) p.classList.remove('show');
+}
+
 async function _publishAll(silent=false) {
   const s=getGitHubSettings();
   if (!s.token||!s.owner||!s.repo) { if(!silent) { toast('Set up GitHub connection first'); goPanel('github', document.getElementById('ni-github')); } return; }
-  if (!silent) { setGhStatus('Publishing…','info'); toast('Publishing to GitHub…'); }
 
-  // ── Push images and rewrite file refs ──
-  const publishedItems = await Promise.all(items.map(async item => {
-    if (!item.image || typeof item.image === 'string') return item;
-    if (item.image.type === 'base64') {
-      return { ...item, image: item.image.data };
-    }
-    if (item.image.type === 'file' && IS_ELECTRON) {
-      const filename = item.image.name;
-      const dataUrl = await window.electronAPI.readImage(filename);
-      if (!dataUrl) { console.warn('Could not read image:', filename); return item; }
-      const b64 = dataUrl.split(',')[1];
-      const imgRes = await pushFile(`images/${filename}`, b64, `Add image ${filename}`, true);
-      if (!imgRes.ok) console.warn('Image push failed:', filename, imgRes.status, imgRes.data?.message);
-      return { ...item, image: `images/${filename}` };
-    }
-    return item;
-  }));
+  // ── Safety backup before publishing ──
+  try { autoBackupBeforePublish(); } catch(_) {}
 
-  for (const year of sortedYears()) {
-    const yi=publishedItems.filter(i=>i.year==year&&!i.draft);
-    if (!yi.length) continue;
-    const res=await pushFile(`data/portfolio-${year}.json`,JSON.stringify(yi,null,2),`Update portfolio ${year}`);
-    if (!res.ok) throw new Error(`Failed: data/portfolio-${year}.json — ${res.data.message}`);
+  const published = JSON.parse(localStorage.getItem('published_hashes') || '{}');
+  const publishedImgs = JSON.parse(localStorage.getItem('published_images') || '{}');
+
+  // Figure out which works actually changed
+  const liveWorks = items.filter(i => !i.draft);
+  const changed = liveWorks.filter(i => published[i.slug] !== workHash(i));
+  const totalSteps = changed.length + 1; // +1 for manifest/site
+  let step = 0;
+
+  if (!silent) { setGhStatus('Publishing…','info'); showProgress(`Preparing… 0/${totalSteps}`); }
+
+  // ── 1. Push each changed work: its images, then its JSON ──
+  for (const item of changed) {
+    step++;
+    if (!silent) showProgress(`Pushing "${item.title}" — ${step}/${totalSteps}`);
+    const imgs = normaliseImages(item);
+    const imagePaths = [];
+    for (const im of imgs) {
+      // Already a path string on GitHub
+      if (typeof im === 'string') { imagePaths.push(im); continue; }
+      if (im.type === 'base64') {
+        // browser mode — derive a stable filename from work id + index
+        const fname = `${item.id}-${imagePaths.length}.jpg`;
+        const b64 = im.data.split(',')[1];
+        const r = await pushFile(`images/${fname}`, b64, `Image ${fname}`, true);
+        if (r.ok) imagePaths.push(`images/${fname}`);
+        continue;
+      }
+      if (im.type === 'file' && IS_ELECTRON) {
+        const fname = im.name;
+        // Skip re-push if this image was already pushed before
+        if (publishedImgs[fname]) { imagePaths.push(`images/${fname}`); continue; }
+        const dataUrl = await window.electronAPI.readImage(fname);
+        if (!dataUrl) { console.warn('Missing image', fname); continue; }
+        const b64 = dataUrl.split(',')[1];
+        const r = await pushFile(`images/${fname}`, b64, `Image ${fname}`, true);
+        if (r.ok) { imagePaths.push(`images/${fname}`); publishedImgs[fname] = 1; }
+        else console.warn('Image push failed', fname, r.status);
+      }
+    }
+    // Build the work JSON (paths only)
+    const workJson = {
+      id: item.id, slug: item.slug, title: item.title,
+      description: item.description, material: item.material,
+      dimensions: item.dimensions, year: item.year,
+      images: imagePaths, order: item.order || 0
+    };
+    const res = await pushFile(`data/works/${item.slug}.json`, JSON.stringify(workJson, null, 2), `Update work: ${item.title}`);
+    if (!res.ok) { console.warn('Work push failed', item.slug, res.status); continue; }
+    // Clean up renamed work's old file
+    if (item._oldSlug && item._oldSlug !== item.slug) {
+      await ghDelete(`data/works/${item._oldSlug}.json`, `Remove renamed work ${item._oldSlug}`);
+      delete published[item._oldSlug];
+      delete item._oldSlug;
+    }
+    published[item.slug] = workHash(item);
+    // store resolved image paths back so manifest uses them
+    item._publishedImages = imagePaths;
   }
+
+  // ── 2. Orphan cleanup: works on GitHub no longer in local data ──
+  const liveSlugs = new Set(liveWorks.map(i => i.slug));
+  for (const oldSlug of Object.keys(published)) {
+    if (!liveSlugs.has(oldSlug)) {
+      await ghDelete(`data/works/${oldSlug}.json`, `Remove deleted work ${oldSlug}`);
+      delete published[oldSlug];
+    }
+  }
+
+  // ── 3. Build + push manifest (the website reads this) ──
+  step++;
+  if (!silent) showProgress(`Finishing — ${step}/${totalSteps}`);
+  const manifest = liveWorks
+    .sort((a,b) => (a.order||0) - (b.order||0))
+    .map(i => {
+      const imgs = i._publishedImages || normaliseImages(i).map(im => typeof im === 'string' ? im : (im.type==='file' ? `images/${im.name}` : im.data));
+      return {
+        slug: i.slug, title: i.title, description: i.description,
+        material: i.material, dimensions: i.dimensions, year: i.year,
+        images: imgs, order: i.order || 0
+      };
+    });
+  const manRes = await pushFile('data/manifest.json', JSON.stringify(manifest, null, 2), 'Update manifest');
+  if (!manRes.ok) throw new Error('Manifest push failed — ' + (manRes.data?.message||manRes.status));
+
+  // ── 4. site.json (merge with existing) ──
   saveSettingsToStorage();
-  // Fetch existing site.json from GitHub and merge — preserves data not in local admin
   let existingSite = {};
   try {
     const existing = await ghGet('site.json');
-    if (existing && existing.content) {
-      existingSite = JSON.parse(atob(existing.content.replace(/\n/g,'')));
-    }
+    if (existing && existing.content) existingSite = JSON.parse(atob(existing.content.replace(/\n/g,'')));
   } catch(_) {}
   const siteData = { ...existingSite, ...getSettings() };
   delete siteData.cvData;
   siteData.navYears = sortedYears();
   siteData.years    = sortedYears();
-  // Push portrait if present
-  const portraitData = siteData.portraitImage;
-  if (portraitData && portraitData.startsWith('data:')) {
-    const b64 = portraitData.split(',')[1];
-    const portraitRes = await pushFile('images/portrait.jpg', b64, 'Update artist portrait', true);
-    if (portraitRes.ok) siteData.portraitImage = 'images/portrait.jpg';
-    else console.warn('Portrait push failed');
+  // portrait
+  if (siteData.portraitImage && siteData.portraitImage.startsWith('data:')) {
+    const b64 = siteData.portraitImage.split(',')[1];
+    const pr = await pushFile('images/portrait.jpg', b64, 'Update portrait', true);
+    if (pr.ok) siteData.portraitImage = 'images/portrait.jpg';
   }
-
   const siteRes = await pushFile('site.json', JSON.stringify(siteData, null, 2), 'Update site settings');
-  if (!siteRes.ok) throw new Error('Failed: site.json — ' + siteRes.data.message);
+  if (!siteRes.ok) throw new Error('site.json push failed');
 
-  // Push CV PDF if present
+  // ── 5. CV PDF ──
   const cvSettings = getSettings();
   if (cvSettings.cvData && cvSettings.cvFile) {
-    const pdfBase64 = cvSettings.cvData.split(',')[1]; // strip data:application/pdf;base64,
-    const pdfRes = await fetch(`https://api.github.com/repos/${s.owner}/${s.repo}/contents/${cvSettings.cvFile}`, {
-      method: 'PUT',
-      headers: { 'Authorization': 'token ' + s.token, 'Content-Type': 'application/json', 'Accept': 'application/vnd.github.v3+json' },
-      body: JSON.stringify({
-        message: 'Update CV',
-        content: pdfBase64,
-        branch: s.branch,
-        ...(await ghGet(cvSettings.cvFile) ? { sha: (await ghGet(cvSettings.cvFile)).sha } : {})
-      })
-    });
-    if (!pdfRes.ok) console.warn('CV push failed — non-critical');
+    const pdfBase64 = cvSettings.cvData.split(',')[1];
+    await pushFile(cvSettings.cvFile, pdfBase64, 'Update CV', true);
   }
 
-  addPublishHistory('Published everything');
+  // Persist published state
+  localStorage.setItem('published_hashes', JSON.stringify(published));
+  localStorage.setItem('published_images', JSON.stringify(publishedImgs));
+
+  addPublishHistory(`Published ${changed.length} change${changed.length!==1?'s':''}`);
   markSaved();
+  hideProgress();
   if (!silent) {
-    setGhStatus('✓ Published. Site updates in ~30 seconds.','success');
-    toast('✓ Published to GitHub');
+    setGhStatus(`✓ Published ${changed.length} change${changed.length!==1?'s':''}. Live in ~30s.`,'success');
+    toast(`✓ Published`);
     reloadPreview();
   }
+  renderList();
   renderPublishHistory();
 }
 async function publishAll() {
-  try { await _publishAll(); } catch(e) { setGhStatus('✕ '+e.message,'error'); toast('Publish failed'); }
+  try { await _publishAll(); }
+  catch(e) { hideProgress(); setGhStatus('✕ '+e.message,'error'); toast('Publish failed — see GitHub panel'); }
 }
-async function publishPortfolioOnly() {
-  const s=getGitHubSettings(); if (!s.token||!s.owner||!s.repo) { toast('Set up GitHub first'); return; }
-  toast('Publishing artworks…');
-  try {
-    for (const year of sortedYears()) {
-      const yi=items.filter(i=>i.year==year&&!i.draft);
-      if (!yi.length) continue;
-      const res=await pushFile(`data/portfolio-${year}.json`,JSON.stringify(yi,null,2),`Update portfolio ${year}`);
-      if (!res.ok) throw new Error(res.data.message);
-    }
-    addPublishHistory('Published artworks');
-    setGhStatus('✓ Artworks published.','success'); toast('✓ Artworks published'); renderPublishHistory();
-  } catch(e) { setGhStatus('✕ '+e.message,'error'); toast('Failed'); }
-}
-async function publishSettingsOnly() {
-  const s=getGitHubSettings(); if (!s.token||!s.owner||!s.repo) { toast('Set up GitHub first'); return; }
-  toast('Publishing settings…');
-  try {
-    saveSettingsToStorage();
-    const siteData = { ...getSettings() }; delete siteData.cvData;
-    const res=await pushFile('site.json',JSON.stringify(siteData,null,2),'Update site settings');
-    if (!res.ok) throw new Error(res.data.message);
-    addPublishHistory('Published settings');
-    setGhStatus('✓ Settings published.','success'); toast('✓ Settings published'); renderPublishHistory();
-  } catch(e) { setGhStatus('✕ '+e.message,'error'); toast('Failed'); }
+// Legacy single-purpose publishers now just call the full publish
+async function publishPortfolioOnly() { return publishAll(); }
+async function publishSettingsOnly() { return publishAll(); }
+
+// ── Safety backup before publish ──
+function autoBackupBeforePublish() {
+  const backup = { version:2, date:new Date().toISOString(), items, years, settings:getSettings() };
+  const json = JSON.stringify(backup);
+  // Keep last 3 in localStorage
+  const backups = JSON.parse(localStorage.getItem('safety_backups') || '[]');
+  backups.unshift({ date: backup.date, json });
+  localStorage.setItem('safety_backups', JSON.stringify(backups.slice(0, 3)));
 }
 
 // ─────────────────────────────────────────────
@@ -2077,12 +2248,7 @@ function closeModal(id) { document.getElementById(id).classList.remove('open'); 
 // ─────────────────────────────────────────────
 // UTILS
 // ─────────────────────────────────────────────
-function updateSeriesDatalist() {
-  const dl = document.getElementById('series-datalist');
-  if (!dl) return;
-  const names = [...new Set(items.filter(i=>i.series).map(i=>i.series))].sort();
-  dl.innerHTML = names.map(n=>`<option value="${esc(n)}">`).join('');
-}
+function updateSeriesDatalist() { /* series removed */ }
 
 // persistAll: single source of truth for saving state
 // Electron → writes one JSON file; Browser → localStorage (existing keys)
@@ -2153,47 +2319,7 @@ async function reloadPreview() {
 // ─────────────────────────────────────────────
 // EDIT MODAL — image replacement support
 // ─────────────────────────────────────────────
-let currentEditImageData = null;
-let currentEditImageFile = null;
-
-function handleEditFile(input) {
-  if (input.files[0]) processEditFile(input.files[0]);
-}
-
-async function pickEditImageElectron() {
-  const result = await window.electronAPI.pickImage();
-  if (!result) return;
-  const mime = result.filename.match(/\.png$/i) ? 'image/png' :
-               result.filename.match(/\.webp$/i) ? 'image/webp' : 'image/jpeg';
-  const byteArr = Uint8Array.from(atob(result.base64), c => c.charCodeAt(0));
-  const blob = new Blob([byteArr], { type: mime });
-  const file = new File([blob], result.filename, { type: mime });
-  processEditFile(file);
-}
-
-function processEditFile(file) {
-  currentEditImageFile = file;
-  const reader = new FileReader();
-  reader.onload = e => {
-    const img = new Image();
-    img.onload = () => {
-      const MAX = 1800;
-      let w = img.width, h = img.height;
-      if (w > MAX || h > MAX) { const r = Math.min(MAX/w, MAX/h); w = Math.round(w*r); h = Math.round(h*r); }
-      const canvas = document.createElement('canvas');
-      canvas.width = w; canvas.height = h;
-      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-      currentEditImageData = canvas.toDataURL('image/jpeg', 0.88);
-      const prev = document.getElementById('edit-image-preview');
-      if (prev) { prev.src = currentEditImageData; prev.style.display = 'block'; }
-      const hint = document.getElementById('edit-image-hint');
-      if (hint) hint.style.display = 'block';
-      toast(`New image staged (${w}×${h}px) — save to apply`);
-    };
-    img.src = e.target.result;
-  };
-  reader.readAsDataURL(file);
-}
+// (legacy single-image edit handlers removed — now multi-image)
 
 
 // ── Panel system ──
@@ -2227,28 +2353,17 @@ function syncEditDraftTog() {
 // ─────────────────────────────────────────────
 async function initAsync() {
   if (IS_ELECTRON) {
-    // Show preview button
-    const previewBtn = document.getElementById('preview-nav-btn');
-    if (previewBtn) previewBtn.style.display = 'block';
-
-    // Show auto-backups folder button in backup modal
     const backupsDirBtn = document.getElementById('show-backups-btn');
     if (backupsDirBtn) backupsDirBtn.style.display = 'block';
 
-    // Swap upload zone button label to "Pick image" in Electron
     const uploadZone = document.getElementById('upload-zone');
     if (uploadZone) {
-      uploadZone.querySelector('p').innerHTML =
-        '<strong>Click to pick image</strong> or drag & drop from Finder<br>JPG, PNG, WebP — auto-resized to max 1800px';
-      // Wire the zone click to native file dialog instead of hidden input
+      const sub = uploadZone.querySelector('.dz-sub');
+      if (sub) sub.innerHTML = 'Click to pick or drag from Finder — first is cover<br>JPG, PNG, WebP — multiple allowed';
       uploadZone.querySelector('input[type="file"]').style.display = 'none';
-      uploadZone.addEventListener('click', e => {
-        if (e.target.tagName === 'INPUT') return;
-        pickImageElectron();
-      }, true);
+      uploadZone.addEventListener('click', e => { if (e.target.tagName === 'INPUT') return; pickImageElectron(); }, true);
     }
 
-    // Load persisted data from disk
     const data = await Store.load();
     if (data) {
       items = data.items || [];
@@ -2257,24 +2372,66 @@ async function initAsync() {
       if (data.settings) localStorage.setItem('pf_settings', JSON.stringify(data.settings));
       if (data.years)    localStorage.setItem('pf_years', JSON.stringify(data.years));
     } else {
-      items = [];
-      years = [...DEFAULT_YEARS];
+      items = []; years = [...DEFAULT_YEARS];
     }
   } else {
-    // Browser: load from localStorage (original behaviour)
     items = JSON.parse(localStorage.getItem('pf_items') || '[]');
     years = JSON.parse(localStorage.getItem('pf_years') || JSON.stringify(DEFAULT_YEARS));
     autoSyncEnabled = localStorage.getItem('auto_sync') === 'true';
   }
 
+  // ── Migrate legacy items: single image → images[], add slug ──
+  let migrated = false;
+  items.forEach((it, idx) => {
+    if (!it.images) {
+      it.images = it.image ? [it.image] : [];
+      delete it.image;
+      migrated = true;
+    }
+    if (!it.slug) { it.slug = uniqueSlug(slugify(it.title), it.id); migrated = true; }
+    if (it.order === undefined) { it.order = idx; migrated = true; }
+    if (it.series !== undefined) { delete it.series; migrated = true; }
+  });
+  if (migrated) await persistAll();
+
   renderTabs();
   renderList();
   updateDraftBadge();
-  updateSeriesDatalist();
   document.getElementById('auto-sync-toggle').checked = autoSyncEnabled;
   if (autoSyncEnabled) document.getElementById('auto-sync-tog').classList.add('on');
   checkUnsaved();
 
+  // ── Pull from GitHub if local archive is empty but a manifest exists ──
+  if (!items.length) { tryPullFromGitHub(); }
+}
+
+// Pull works from GitHub manifest into the local admin (for empty/new installs)
+async function tryPullFromGitHub() {
+  const s = getGitHubSettings();
+  if (!s.token || !s.owner || !s.repo) return;
+  try {
+    const man = await ghGet('data/manifest.json');
+    if (!man || !man.content) return;
+    const works = JSON.parse(atob(man.content.replace(/\n/g,'')));
+    if (!Array.isArray(works) || !works.length) return;
+    if (!confirm(`Found ${works.length} works published on GitHub. Import them into this admin?`)) return;
+    items = works.map(w => ({
+      id: Date.now() + Math.floor(Math.random()*10000),
+      slug: w.slug, title: w.title, description: w.description,
+      material: w.material, dimensions: w.dimensions, year: w.year,
+      images: (w.images||[]).map(p => p), // keep as path strings
+      draft: false, order: w.order || 0
+    }));
+    // mark them as published so they won't re-push needlessly
+    const published = {};
+    items.forEach(i => published[i.slug] = workHash(i));
+    localStorage.setItem('published_hashes', JSON.stringify(published));
+    // ensure years include all
+    items.forEach(i => { if (i.year && !years.includes(i.year)) years.push(i.year); });
+    await persistAll();
+    renderTabs(); renderList(); updateDraftBadge();
+    toast(`Imported ${items.length} works from GitHub`);
+  } catch(e) { console.warn('Pull failed', e); }
 }
 
 
