@@ -837,6 +837,21 @@ body{
 
           <div class="card">
             <div class="card-head">
+              <span class="mi card-icon">cloud_sync</span>
+              <span class="card-title">Sync status</span>
+            </div>
+            <div id="sync-status" style="font-size:13px;line-height:1.7;margin-bottom:12px">
+              <span style="opacity:.6">Click Check to compare local & GitHub…</span>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <button class="btn" onclick="checkSync()"><span class="mi mi-sm">cloud_sync</span> Check sync</button>
+              <button class="btn" id="pull-btn" onclick="pullFromGitHub()"><span class="mi mi-sm">cloud_download</span> Pull from GitHub</button>
+              <button class="btn btn-ghost btn-sm" onclick="forceRepublishAll()" title="Re-push every work, ignoring the local published record"><span class="mi mi-sm">refresh</span> Force republish all</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-head">
               <span class="mi card-icon">sync</span>
               <span class="card-title">Auto-sync</span>
             </div>
@@ -2097,9 +2112,32 @@ async function _publishAll(silent=false) {
   const published = JSON.parse(localStorage.getItem('published_hashes') || '{}');
   const publishedImgs = JSON.parse(localStorage.getItem('published_images') || '{}');
 
-  // Figure out which works actually changed
+  // ── Self-correct: check what's ACTUALLY on GitHub right now ──
+  // If a work isn't in the live manifest (e.g. files were deleted on GitHub),
+  // push it regardless of what our local published-record claims.
+  let remoteSlugs = null;
+  if (!silent) showProgress('Checking GitHub…');
+  try {
+    const remote = await fetchManifestFromGitHub();
+    if (remote === null) {
+      // No manifest on GitHub → treat everything as needing a push
+      remoteSlugs = new Set();
+    } else {
+      remoteSlugs = new Set(remote.map(w => w.slug));
+    }
+  } catch(_) { remoteSlugs = null; /* network issue — fall back to local record */ }
+
+  // Figure out which works need pushing
   const liveWorks = items.filter(i => !i.draft);
-  const changed = liveWorks.filter(i => published[i.slug] !== workHash(i));
+  const changed = liveWorks.filter(i => {
+    const localSaysChanged = published[i.slug] !== workHash(i);
+    const missingOnRemote  = remoteSlugs !== null && !remoteSlugs.has(i.slug);
+    return localSaysChanged || missingOnRemote;
+  });
+  // If remote is missing images too, clear the image record so they re-push
+  if (remoteSlugs !== null && remoteSlugs.size === 0) {
+    for (const k of Object.keys(publishedImgs)) delete publishedImgs[k];
+  }
   const totalSteps = changed.length + 1; // +1 for manifest/site
   let step = 0;
 
@@ -2338,7 +2376,7 @@ function goPanel(id, btn) {
   if (id === 'works') { renderTabs(); renderList(); }
   const settingsPanels = ['exh','identity','cvedu','writing','contact'];
   if (settingsPanels.includes(id)) loadSettingsForm();
-  if (id === 'github') loadGitHubForm();
+  if (id === 'github') { loadGitHubForm(); setTimeout(() => { try { checkSync(); } catch(_){} }, 200); }
 }
 
 // Sync edit-draft toggle visual
@@ -2432,6 +2470,88 @@ async function tryPullFromGitHub() {
     renderTabs(); renderList(); updateDraftBadge();
     toast(`Imported ${items.length} works from GitHub`);
   } catch(e) { console.warn('Pull failed', e); }
+}
+
+// ── Sync status: compare local vs GitHub manifest ──
+async function fetchManifestFromGitHub() {
+  const man = await ghGet('data/manifest.json');
+  if (!man || !man.content) return null; // null = no manifest on GitHub
+  try { return JSON.parse(atob(man.content.replace(/\n/g,''))); }
+  catch(_) { return null; }
+}
+
+async function checkSync() {
+  const s = getGitHubSettings();
+  const box = document.getElementById('sync-status');
+  if (!s.token || !s.owner || !s.repo) { box.innerHTML = '<span style="color:var(--red)">Set up GitHub connection first.</span>'; return; }
+  box.innerHTML = '<span style="opacity:.6">Checking…</span>';
+  const remote = await fetchManifestFromGitHub();
+  const localLive = items.filter(i => !i.draft);
+  const localCount = localLive.length;
+
+  if (remote === null) {
+    box.innerHTML = `<div><span class="sync-dot sync-new" style="margin-right:6px"></span><strong>GitHub:</strong> no manifest yet · <strong>Local:</strong> ${localCount} work${localCount!==1?'s':''}</div>
+      <div style="opacity:.65;margin-top:4px">Nothing published yet. Hit “Push to website” to publish your ${localCount} work${localCount!==1?'s':''}.</div>`;
+    return;
+  }
+
+  const remoteSlugs = new Set(remote.map(w => w.slug));
+  const localSlugs  = new Set(localLive.map(w => w.slug));
+  const onlyLocal   = localLive.filter(w => !remoteSlugs.has(w.slug));
+  const onlyRemote  = remote.filter(w => !localSlugs.has(w.slug));
+  // edited = present both sides but content differs
+  const published = JSON.parse(localStorage.getItem('published_hashes') || '{}');
+  const edited = localLive.filter(w => remoteSlugs.has(w.slug) && published[w.slug] !== workHash(w));
+
+  if (!onlyLocal.length && !onlyRemote.length && !edited.length) {
+    box.innerHTML = `<div><span class="sync-dot sync-synced" style="margin-right:6px"></span><strong>In sync</strong> — ${localCount} work${localCount!==1?'s':''} on both sides.</div>`;
+    return;
+  }
+
+  let html = `<div style="margin-bottom:6px"><strong>GitHub:</strong> ${remote.length} · <strong>Local:</strong> ${localCount}</div>`;
+  if (onlyLocal.length)  html += `<div><span class="sync-dot sync-new" style="margin-right:6px"></span>${onlyLocal.length} work${onlyLocal.length!==1?'s':''} only local — will publish on next push.</div>`;
+  if (edited.length)     html += `<div><span class="sync-dot sync-edited" style="margin-right:6px"></span>${edited.length} edited since last publish.</div>`;
+  if (onlyRemote.length) html += `<div><span class="sync-dot" style="background:var(--blue);margin-right:6px"></span>${onlyRemote.length} work${onlyRemote.length!==1?'s':''} on GitHub not in this admin — use “Pull” to import.</div>`;
+  box.innerHTML = html;
+}
+
+// Pull GitHub's state into local (adds works missing locally; never deletes local)
+async function pullFromGitHub() {
+  const s = getGitHubSettings();
+  if (!s.token || !s.owner || !s.repo) { toast('Set up GitHub first'); return; }
+  const remote = await fetchManifestFromGitHub();
+  if (remote === null) { toast('No manifest on GitHub yet'); return; }
+  const localSlugs = new Set(items.map(w => w.slug));
+  const toAdd = remote.filter(w => !localSlugs.has(w.slug));
+  if (!toAdd.length) { toast('Already have everything from GitHub'); checkSync(); return; }
+  if (!confirm(`Import ${toAdd.length} work${toAdd.length!==1?'s':''} from GitHub into this admin?`)) return;
+  toAdd.forEach(w => {
+    items.push({
+      id: Date.now() + Math.floor(Math.random()*10000),
+      slug: w.slug, title: w.title, description: w.description,
+      material: w.material, dimensions: w.dimensions, year: w.year,
+      images: (w.images||[]).slice(), draft: false, order: w.order || 0
+    });
+    if (w.year && !years.includes(w.year)) years.push(w.year);
+  });
+  // refresh published record for the imported works
+  const published = JSON.parse(localStorage.getItem('published_hashes') || '{}');
+  items.forEach(i => { if (published[i.slug] === undefined) published[i.slug] = workHash(i); });
+  localStorage.setItem('published_hashes', JSON.stringify(published));
+  await persistAll();
+  renderTabs(); renderList(); updateDraftBadge();
+  toast(`Imported ${toAdd.length} work${toAdd.length!==1?'s':''}`);
+  checkSync();
+}
+
+// Force a full republish: clear the published record so every work re-pushes
+async function forceRepublishAll() {
+  if (!confirm('Re-push every work to GitHub, even unchanged ones? Use this if you deleted files on GitHub and want to restore them.')) return;
+  localStorage.removeItem('published_hashes');
+  localStorage.removeItem('published_images');
+  toast('Republishing everything…');
+  await publishAll();
+  checkSync();
 }
 
 
